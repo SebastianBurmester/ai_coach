@@ -1,5 +1,8 @@
 Creating a AI Coach to assist primarly in endurance sports. 
 
 - Access to Garmin Data
-- Gemini API
+- Gemini API Agent to interact
+- chat history logged and summarized
+- user metrics can be read and set by agent
+- 
 
