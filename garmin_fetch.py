@@ -43,11 +43,19 @@ def get_recent_activities_by_type(client, activity_type, count=3):
 
 # --- Main Execution ---
 try:
+    token_dir = os.path.expanduser("~/.garminconnect")
     # 1. Initialize and Login
     email = os.getenv("GARMIN_EMAIL")
     password = os.getenv("GARMIN_PASSWORD")
-    client = Garmin(email, password)
-    client.login()
+    client = Garmin() # (email, password) if token expired
+    client.login(tokenstore=token_dir)
+    
+    # Save tokens to the default directory (~/.garminconnect)
+    token_dir = os.path.expanduser("~/.garminconnect")
+    os.makedirs(token_dir, exist_ok=True)
+    client.garth.dump(token_dir)
+
+    print(f"Success! Tokens saved to: {token_dir}")
 
     # 2. Query specific category
     # Common types: 'running', 'cycling', 'swimming', 'strength_training', 'hiking', 'walking', 'virtual_ride'
