@@ -62,7 +62,7 @@ model = genai.GenerativeModel(
 
 # Initialize
 # We pass the 'coach_model' so the manager can use it to generate summaries
-history_manager = PersistentHistoryManager(model=model, max_messages=3, summary_batch_size=2) # Set to 10 for testing
+history_manager = PersistentHistoryManager(model=model, max_messages=10, summary_batch_size=2) # Set to 10 for testing
 
 print("Agent ready. Type 'quit' to exit.")
 
