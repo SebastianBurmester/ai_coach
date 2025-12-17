@@ -1,89 +1,145 @@
 import os
-import google.generativeai as genai
+import sys
+import json
 from dotenv import load_dotenv
+
+# NEW IMPORT SYNTAX
+from google import genai
+from google.genai import types
+
+# Import your tools
+from metrics import get_my_status, update_fitness_metric, add_race_goal, update_goal
 from garminconnect import Garmin
-from history_manager import PersistentHistoryManager
 
-# 1. Setup
 load_dotenv()
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
-# --- Define Your Tools (The "Skills" your agent has) ---
-
+# --- 1. Define the Garmin Tool (Same logic, just wrapped) ---
 def get_latest_activity_stats(activity_type: str = "running"):
     """
     Fetches the distance and duration of the user's latest activity 
     for a specific sport type (running, cycling, etc.).
     """
     try:
-        # Connect to Garmin (using env vars)
         email = os.getenv("GARMIN_EMAIL")
         password = os.getenv("GARMIN_PASSWORD")
+        if not email or not password:
+            return "Error: Garmin credentials not found in .env"
+            
         client = Garmin(email, password)
         client.login()
 
-        # Fetch last 10 activities to find the right type
         activities = client.get_activities(0, 10)
-        
         for act in activities:
-            # Check if this activity matches the requested type
             if act['activityType']['typeKey'] == activity_type:
-                # Found it! Extract useful data
                 dist_km = round(act['distance'] / 1000, 2)
                 duration_min = round(act['duration'] / 60, 2)
                 date = act['startTimeLocal']
-                return {
+                return json.dumps({
                     "date": date,
                     "type": activity_type,
                     "distance_km": dist_km,
                     "duration_minutes": duration_min
-                }
+                })
         return "No recent activity found for that type."
-        
     except Exception as e:
-        return f"Error fetching data: {e}"
+        return f"Error fetching data: {str(e)}"
 
-# --- Create the Agent ---
+# --- 2. Tool Mapping ---
+# We map the functions to a dictionary so the agent can execute them
+tool_map = {
+    'get_latest_activity_stats': get_latest_activity_stats,
+    'get_my_status': get_my_status,
+    'update_fitness_metric': update_fitness_metric,
+    'add_race_goal': add_race_goal,
+    'update_goal': update_goal
+}
 
-# 1. Create a dictionary of tools
-tools_list = [get_latest_activity_stats]
+# List of functions to give the model
+tools_list = [
+    get_latest_activity_stats,
+    get_my_status,
+    update_fitness_metric,
+    add_race_goal,
+    update_goal
+]
 
-# 2. Initialize the model with tools
-# We use 'gemini-1.5-flash' because it's fast and free-tier friendly
-model = genai.GenerativeModel(
-    model_name='gemini-2.5-flash',
-    tools=tools_list,
-    system_instruction="You are a helpful fitness coach. You have access to the user's Garmin data. Use it to give specific advice."
-)
+# --- 3. The New Agent Class ---
+class Agent:
+    def __init__(self):
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        if not self.api_key:
+            print("Error: GEMINI_API_KEY not found.")
+            sys.exit(1)
+            
+        # Initialize the NEW Client
+        self.client = genai.Client(api_key=self.api_key)
+        
+        # Configure the chat with tools
+        # We use 'gemini-1.5-flash' as it is stable and fast
+        self.chat = self.client.chats.create(
+            model="gemini-2.5-flash",
+            config=types.GenerateContentConfig(
+                tools=tools_list,
+                temperature=0.7,
+                system_instruction="""
+                You are a smart cycling and running coach. 
+                You have read/write access to the user's 'metrics' file and Garmin data.
+                
+                Rules:
+                1. If the user asks about stats, use 'get_my_status'.
+                2. If the user provides new stats, use 'update_fitness_metric'.
+                3. If the user announces a race, use 'add_race_goal'.
+                4. Always confirm when you have updated a file.
+                """
+            )
+        )
 
-# 3. Start a chat session with automatic function calling enabled
-# This does the magic: Model decides to call function -> Python runs it -> Model gets result
-# ... (Previous imports and setup) ...
+    def send_message(self, user_text):
+        """
+        Handles the conversation loop:
+        User Input -> Model -> (Maybe Function Call) -> Execute -> Model -> Response
+        """
+        # Send user message
+        response = self.chat.send_message(user_text)
+        
+        # Loop to handle function calls (The model might want to call multiple tools)
+        while response.function_calls:
+            for call in response.function_calls:
+                print(f" > [Agent Tool Request]: {call.name}({call.args})")
+                
+                # 1. Execute the Python function
+                func = tool_map.get(call.name)
+                if func:
+                    # Pass the arguments from the model to the function
+                    result = func(**call.args)
+                else:
+                    result = f"Error: Tool {call.name} not found."
+                
+                # 2. Give the result back to the model
+                # In the new SDK, we send the result back as a tool response
+                response = self.chat.send_message(
+                    types.Part.from_function_response(
+                        name=call.name,
+                        response={"result": result}
+                    )
+                )
+                
+        return response.text
 
-# Initialize
-# We pass the 'coach_model' so the manager can use it to generate summaries
-history_manager = PersistentHistoryManager(model=model, max_messages=10, summary_batch_size=2) # Set to 10 for testing
+# --- 4. Main Loop ---
+if __name__ == "__main__":
+    agent = Agent()
+    print("--- New GenAI Agent Ready (v2.0) ---")
+    print("Type 'quit' to exit.")
 
-print("Agent ready. Type 'quit' to exit.")
-
-while True:
-    user_input = input("\nYou: ")
-    if user_input.lower() in ['quit', 'exit']:
-        break
-
-    # 1. Add User Input to History
-    history_manager.add_message("user", user_input)
-
-    # 2. Re-build the chat session with the full context (Summary + Recent History)
-    # We create a fresh chat instance every turn to inject the updated history perfectly
-    current_history = history_manager.get_full_context()
-    chat_session = model.start_chat(history=current_history, enable_automatic_function_calling=True)
-
-    # 3. Get Response
-    # Note: We send the *last* message again because start_chat loads context but doesn't trigger a reply
-    response = chat_session.send_message(user_input) 
-    
-    # 4. Add AI Response to History
-    history_manager.add_message("model", response.text)
-    
-    print(f"Coach: {response.text}")
+    while True:
+        try:
+            user_input = input("\nYou: ")
+            if user_input.lower() in ['quit', 'exit']:
+                break
+            
+            reply = agent.send_message(user_input)
+            print(f"Coach: {reply}")
+            
+        except Exception as e:
+            print(f"An error occurred: {e}")
