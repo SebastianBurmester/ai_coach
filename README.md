@@ -11,3 +11,7 @@ https://github.com/cyberjunky/python-garminconnect
 
 Google AI Studio:
 https://aistudio.google.com/
+
+
+Setup:
+pip install -r requirements.txt
