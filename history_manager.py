@@ -1,90 +1,91 @@
 import json
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 class PersistentHistoryManager:
-    def __init__(self, model, filename="agent_memory.json", max_messages=30, summary_batch_size=10):
+    def __init__(self, client, filename="agent_memory.json", max_messages=20):
+        self.client = client
         self.filename = filename
-        self.model = model
         self.max_messages = max_messages
-        self.summary_batch_size = summary_batch_size
-        
-        # Try to load existing memory from file
-        self.history = []
+        self.history = []  # List of dicts: {'role': 'user'|'model', 'parts': ['text']}
         self.summary = ""
         self.load_memory()
 
     def add_message(self, role, text):
-        """Add message, check limits, and SAVE to file immediately."""
+        """Add a simple text message to history."""
+        # Convert 'user'/'model' to the format we want to save
         self.history.append({"role": role, "parts": [text]})
         
+        # Check if we need to summarize
         if len(self.history) > self.max_messages:
             self._summarize_oldest()
         
-        # Save after every turn so we never lose data
         self.save_memory()
 
+    def _summarize_oldest(self):
+        """Summarizes the oldest chunk of conversation."""
+        print(" [System]: Summarizing old history to save space...")
+        
+        # Slice the oldest 5 messages
+        chunk = self.history[:5]
+        self.history = self.history[5:]
+        
+        chunk_text = "\n".join([f"{m['role']}: {m['parts'][0]}" for m in chunk])
+        
+        # Use the client to generate a summary
+        prompt = f"""
+        Current Memory Summary: "{self.summary}"
+        
+        Old conversation lines to merge:
+        {chunk_text}
+        
+        Task: Merge the old lines into the summary. Keep it concise. Preserve user goals and metrics.
+        """
+        response = self.client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        self.summary = response.text.strip()
+        print(" [System]: Memory updated.")
+
+    def get_loadable_history(self):
+        """
+        Converts our saved history into the format the new SDK expects.
+        FIX: Uses text=... keyword argument.
+        """
+        sdk_history = []
+        
+        # 1. Inject Summary as the first "System" context (simulated as user message)
+        if self.summary:
+            sdk_history.append(types.Content(
+                role="user",
+                parts=[types.Part.from_text(text=f"SYSTEM MEMORY SUMMARY: {self.summary}")]
+            ))
+            sdk_history.append(types.Content(
+                role="model",
+                parts=[types.Part.from_text(text="Understood. I have the context.")]
+            ))
+            
+        # 2. Add the actual recent message history
+        for msg in self.history:
+            sdk_history.append(types.Content(
+                role=msg['role'],
+                parts=[types.Part.from_text(text=msg['parts'][0])] # <--- FIXED HERE
+            ))
+            
+        return sdk_history
+
     def save_memory(self):
-        """Writes the current history and summary to a JSON file."""
-        data = {
-            "summary": self.summary,
-            "history": self.history
-        }
-        with open(self.filename, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2)
+        with open(self.filename, 'w') as f:
+            json.dump({"summary": self.summary, "history": self.history}, f, indent=2)
 
     def load_memory(self):
-        """Reads the JSON file if it exists."""
         if os.path.exists(self.filename):
             try:
-                with open(self.filename, 'r', encoding='utf-8') as f:
+                with open(self.filename, 'r') as f:
                     data = json.load(f)
                     self.summary = data.get("summary", "")
                     self.history = data.get("history", [])
-                print(f"[System]: Loaded memory from {self.filename}")
-            except Exception as e:
-                print(f"[System]: Error loading memory: {e}")
-        else:
-            print("[System]: No previous memory found. Starting fresh.")
-
-    def _summarize_oldest(self):
-        """(Same logic as before, but now triggered automatically)"""
-        # 1. Slice off oldest
-        messages_to_summarize = self.history[:self.summary_batch_size]
-        self.history = self.history[self.summary_batch_size:]
-        
-        # 2. Convert to text
-        conversation_text = ""
-        for msg in messages_to_summarize:
-            role = "User" if msg['role'] == 'user' else "AI"
-            conversation_text += f"{role}: {msg['parts'][0]}\n"
-
-        # 3. Ask AI to summarize
-        print("[System]: Summarizing old conversations...")
-        summary_chat = self.model.start_chat()
-        prompt = f"""
-        Current Summary: "{self.summary}"
-        
-        Old conversation lines to merge:
-        {conversation_text}
-        
-        Task: Create a new, updated summary merging the old summary with these new lines.
-        Keep it concise but retain specific facts about the user.
-        """
-        response = summary_chat.send_message(prompt)
-        self.summary = response.text.strip()
-        print(f"[System]: Summary updated.")
-
-    def get_full_context(self):
-        """(Same logic: returns summary + history list)"""
-        context_prompt = []
-        if self.summary:
-            context_prompt.append({
-                "role": "user", 
-                "parts": [f"SYSTEM NOTE - SUMMARY OF PAST CONVERSATIONS: {self.summary}"]
-            })
-            context_prompt.append({
-                "role": "model",
-                "parts": ["Understood."]
-            })
-        return context_prompt + self.history
+            except:
+                print(" [System]: Error loading memory file. Starting fresh.")

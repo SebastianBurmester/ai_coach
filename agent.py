@@ -3,13 +3,14 @@ import sys
 import json
 from dotenv import load_dotenv
 
-# NEW IMPORT SYNTAX
 from google import genai
 from google.genai import types
 
 # Import your tools
 from metrics import get_my_status, update_fitness_metric, add_race_goal, update_goal
 from garminconnect import Garmin
+
+from history_manager import PersistentHistoryManager
 
 load_dotenv()
 
@@ -66,80 +67,65 @@ tools_list = [
 # --- 3. The New Agent Class ---
 class Agent:
     def __init__(self):
-        self.api_key = os.getenv("GEMINI_API_KEY")
-        if not self.api_key:
-            print("Error: GEMINI_API_KEY not found.")
-            sys.exit(1)
-            
-        # Initialize the NEW Client
-        self.client = genai.Client(api_key=self.api_key)
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key: sys.exit("Error: GEMINI_API_KEY missing.")
         
-        # Configure the chat with tools
-        # We use 'gemini-1.5-flash' as it is stable and fast
+        self.client = genai.Client(api_key=api_key)
+        
+        # Initialize History Manager
+        self.memory = PersistentHistoryManager(self.client, max_messages=3)
+        
+        # Create Chat with loaded history
         self.chat = self.client.chats.create(
             model="gemini-2.5-flash",
+            history=self.memory.get_loadable_history(),
             config=types.GenerateContentConfig(
                 tools=tools_list,
                 temperature=0.7,
                 system_instruction="""
-                You are a smart cycling and running coach. 
-                You have read/write access to the user's 'metrics' file and Garmin data.
-                
-                Rules:
-                1. If the user asks about stats, use 'get_my_status'.
-                2. If the user provides new stats, use 'update_fitness_metric'.
-                3. If the user announces a race, use 'add_race_goal'.
-                4. Always confirm when you have updated a file.
+                You are a smart fitness coach. You have access to the user's files and Garmin data.
+                Always confirm when you read or write data.
                 """
             )
         )
 
-    def send_message(self, user_text):
-        """
-        Handles the conversation loop:
-        User Input -> Model -> (Maybe Function Call) -> Execute -> Model -> Response
-        """
-        # Send user message
-        response = self.chat.send_message(user_text)
+    def run_turn(self, user_input):
+        # 1. Add User Input to Memory
+        self.memory.add_message("user", user_input)
         
-        # Loop to handle function calls (The model might want to call multiple tools)
+        # 2. Send to Model
+        response = self.chat.send_message(user_input)
+        
+        # 3. Handle Tool Calls
         while response.function_calls:
             for call in response.function_calls:
-                print(f" > [Agent Tool Request]: {call.name}({call.args})")
-                
-                # 1. Execute the Python function
+                print(f" > [Tool Call]: {call.name}")
                 func = tool_map.get(call.name)
-                if func:
-                    # Pass the arguments from the model to the function
-                    result = func(**call.args)
-                else:
-                    result = f"Error: Tool {call.name} not found."
+                result = func(**call.args) if func else "Error: Tool not found"
                 
-                # 2. Give the result back to the model
-                # In the new SDK, we send the result back as a tool response
+                # Send result back
                 response = self.chat.send_message(
                     types.Part.from_function_response(
                         name=call.name,
                         response={"result": result}
                     )
                 )
-                
+        
+        # 4. Add Final Model Response to Memory
+        self.memory.add_message("model", response.text)
         return response.text
 
 # --- 4. Main Loop ---
 if __name__ == "__main__":
     agent = Agent()
-    print("--- New GenAI Agent Ready (v2.0) ---")
-    print("Type 'quit' to exit.")
-
+    print("--- Fitness Coach (v2.1 with Memory) ---")
+    
     while True:
         try:
-            user_input = input("\nYou: ")
-            if user_input.lower() in ['quit', 'exit']:
-                break
+            u_in = input("\nYou: ")
+            if u_in.lower() in ['quit', 'exit']: break
             
-            reply = agent.send_message(user_input)
-            print(f"Coach: {reply}")
+            print(f"Coach: {agent.run_turn(u_in)}")
             
         except Exception as e:
-            print(f"An error occurred: {e}")
+            print(f"Error: {e}")

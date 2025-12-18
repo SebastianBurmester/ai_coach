@@ -55,8 +55,6 @@ try:
     os.makedirs(token_dir, exist_ok=True)
     client.garth.dump(token_dir)
 
-    print(f"Success! Tokens saved to: {token_dir}")
-
     # 2. Query specific category
     # Common types: 'running', 'cycling', 'swimming', 'strength_training', 'hiking', 'walking', 'virtual_ride'
     target_sport = "virtual_ride"
