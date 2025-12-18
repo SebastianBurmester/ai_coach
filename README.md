@@ -15,3 +15,6 @@ https://aistudio.google.com/
 
 Setup:
 pip install -r requirements.txt
+
+ToDo:
+- HITL workflow for planning and analyzing training load and health stats
