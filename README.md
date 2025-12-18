@@ -18,3 +18,4 @@ pip install -r requirements.txt
 
 ToDo:
 - HITL workflow for planning and analyzing training load and health stats
+- API call once a day to log relevant data to be added into context
