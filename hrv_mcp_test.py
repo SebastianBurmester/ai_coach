@@ -22,7 +22,7 @@ async def main():
         # Now ask Gemini!
         response = await client.aio.models.generate_content(
             model="gemini-2.0-flash",
-            contents="What was my HRV last night? What is the value?",
+            contents="Can you analyze my workout? Today is 19.12.2025.",
             config=genai.types.GenerateContentConfig(
                 tools=[mcp_client.session]
             )
