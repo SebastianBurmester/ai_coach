@@ -23,7 +23,7 @@ class Agent:
         
         # Initialize your existing History Manager
         # Ensure your PersistentHistoryManager class is imported!
-        self.memory = PersistentHistoryManager(self.client, max_messages=10)
+        self.memory = PersistentHistoryManager(self.client, max_messages=20)
         
         # Create Chat with loaded history
         # Note: We pass mcp_session directly into tools. 
@@ -33,7 +33,7 @@ class Agent:
             history=self.memory.get_loadable_history(),
             config=types.GenerateContentConfig(
                 tools=[self.mcp_session],
-                temperature=0.7,
+                temperature=1.0,
                 system_instruction="""
                 You are a smart fitness coach. You have access to the user's files and Garmin data.
                 Always confirm when you read or write data.
@@ -60,7 +60,7 @@ async def main():
     async with Client(SERVER_FILE) as mcp_client:
         agent = Agent(mcp_client.session)
         
-        print("--- Fitness Coach (v2.2 + MCP + History) ---")
+        print("--- Fitness Coach (Flash 2.5 + MCP + History) ---")
         print("Type 'quit' to exit.\n")
 
         while True:
