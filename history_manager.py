@@ -4,7 +4,7 @@ from google import genai
 from google.genai import types
 
 class PersistentHistoryManager:
-    def __init__(self, client, filename="agent_memory.json", max_messages=20):
+    def __init__(self, client, filename="memory/agent_memory.json", max_messages=20):
         self.client = client
         self.filename = filename
         self.max_messages = max_messages
