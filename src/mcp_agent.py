@@ -9,7 +9,7 @@ from history_manager import PersistentHistoryManager
 
 # --- 1. Load Configuration ---
 load_dotenv()
-SERVER_FILE = r"C:\Users\sburm\ai_coach\mcp_server.py"
+SERVER_FILE = r"C:\Users\sburm\ai_coach\src\mcp_server.py"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # ... (Previous imports remain same)
