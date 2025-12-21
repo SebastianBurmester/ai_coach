@@ -1,19 +1,21 @@
-Creating a AI Coach to assist primarly in endurance sports. 
+# Forge: AI Fitness Coach
 
-*Features*
-- Garmin mcp Server
-- Gemini API Agent
-- Chat history logging
-- Custom Training Goals
+Forge is a AI fitness assistant built on the **Gemini API**. Forge utilizes the **Model Context Protocol (MCP)** to interact directly with your Garmin Connect data.
 
-*Setup*
+## Key Features
+* **Active Reasoning:** Uses Gemini "Thinking Mode" to analyze your recovery and workout intensity before responding.
+* **Garmin Integrated:** Live fetching of Resting HR, Sleep, and Stress levels.
+* **Persistent Memory:** Remembers your long-term goals and past coaching conversations.
+* **Modular MCP Tools:** Easily extendable to Strava, Nutrition APIs, or TrainingPeaks.
+
+## Setup
 pip install -r requirements.txt
 
-*ToDo*
+## TODO
 - HITL Training plan generation Agent
 - Automating Agent to check data and adjust plan daily or weekly
 
-*Sources*
+## Sources
 Garmin API:
 https://github.com/cyberjunky/python-garminconnect
 
