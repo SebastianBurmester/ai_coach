@@ -12,28 +12,29 @@ load_dotenv()
 SERVER_FILE = r"C:\Users\sburm\ai_coach\mcp_server.py"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+# ... (Previous imports remain same)
+
 class Agent:
     def __init__(self, mcp_session):
         if not GEMINI_API_KEY:
             sys.exit("Error: GEMINI_API_KEY missing.")
         
-        # Initialize the new 2.0 Client
         self.client = genai.Client(api_key=GEMINI_API_KEY)
         self.mcp_session = mcp_session
-        
-        # Initialize your existing History Manager
-        # Ensure your PersistentHistoryManager class is imported!
         self.memory = PersistentHistoryManager(self.client, max_messages=40)
         
-        # Create Chat with loaded history
-        # Note: We pass mcp_session directly into tools. 
-        # The SDK handles the loop automatically.
+        # 1. Enable Thinking in the Config
+        # include_thoughts=True allows us to see the reasoning parts.
         self.chat = self.client.aio.chats.create(
             model="gemini-2.5-flash",
             history=self.memory.get_loadable_history(),
             config=types.GenerateContentConfig(
                 tools=[self.mcp_session],
-                temperature=1.0,
+                temperature=1.0, 
+                thinking_config=types.ThinkingConfig(
+                    include_thoughts=True,
+                    # Optional: budget_tokens=1024 # How much it's allowed to "think"
+                ),
                 system_instruction="""
                 You are a smart fitness coach. You have access to the user's files and Garmin data.
                 Always confirm when you read or write data.
@@ -42,16 +43,28 @@ class Agent:
         )
 
     async def run_turn(self, user_input):
-        # 1. Manually add user input to your persistent storage
         self.memory.add_message("user", user_input)
         
-        # 2. Send to Model (SDK executes MCP tools automatically)
-        response = await self.chat.send_message(user_input)
+        full_response_text = ""
         
-        # 3. Add final model response to persistent storage
-        self.memory.add_message("model", response.text)
+        # 2. Use Streaming to catch thoughts
+        # We use await for the stream object, then 'async for' through it.
+        stream = await self.chat.send_message_stream(user_input)
         
-        return response.text
+        print("\n[Coach Thinking...]")
+        async for chunk in stream:
+            # Check for thought parts (Reasoning)
+            for part in chunk.candidates[0].content.parts:
+                if part.thought:
+                    # Print thoughts in a different style (e.g., dim or italic)
+                    print(f"\033[3m   > {part.text}\033[0m", end="", flush=True)
+                
+                if part.text and not part.thought:
+                    # Collect and print the actual response
+                    full_response_text += part.text
+
+        self.memory.add_message("model", full_response_text)
+        return full_response_text
 
 # --- 2. Main Execution Loop ---
 async def main():
