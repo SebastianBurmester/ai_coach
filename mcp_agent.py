@@ -23,7 +23,7 @@ class Agent:
         
         # Initialize your existing History Manager
         # Ensure your PersistentHistoryManager class is imported!
-        self.memory = PersistentHistoryManager(self.client, max_messages=20)
+        self.memory = PersistentHistoryManager(self.client, max_messages=40)
         
         # Create Chat with loaded history
         # Note: We pass mcp_session directly into tools. 
