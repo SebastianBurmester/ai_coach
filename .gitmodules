@@ -1,3 +1,3 @@
-[submodule "python-garminconnect"]
-	path = python-garminconnect
-	url = https://github.com/cyberjunky/python-garminconnect.git
+[submodule "src/external/garminconnect"]
+	path = src/external/garminconnect
+	url = https://github.com/SebastianBurmester/python-garminconnect.git

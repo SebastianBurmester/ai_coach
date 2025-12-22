@@ -1,8 +1,8 @@
 import logging
 from fastmcp import Context
-
-from garminconnect import Garmin
 import os
+
+from garminconnect.garmin import Garmin
 
 logger = logging.getLogger(__name__)
 
