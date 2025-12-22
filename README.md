@@ -4,7 +4,7 @@ AI fitness assistant built on the **Gemini API**. Utilizes the **Model Context P
 
 ## Key Features
 * **Active Reasoning:** Uses Gemini "Thinking Mode" to analyze your recovery and workout intensity before responding.
-* **Garmin Integrated:** Live fetching of Resting HR, Sleep, and Stress levels.
+* **Garmin Integrated:** MCP Tools to get Garmin Data
 * **Persistent Memory:** Remembers your long-term goals and past coaching conversations.
 * **Modular MCP Tools:** Easily extendable to fetch data from different platforms.
 
