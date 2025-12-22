@@ -43,7 +43,7 @@ def register_garmin_health_tools(mcp):
         Fetches the average stress level for a specific date (YYYY-MM-DD).
         """
         client = get_api()
-        stress_data = client.get_all_day_stress(date_str)
+        stress_data = client.get_stress_data(date_str)
         stress_level = stress_data.get("avgStressLevel")
 
         return f"Stress Level for {date_str}: {stress_level}"
@@ -110,4 +110,21 @@ def register_garmin_health_tools(mcp):
             "baseline_low_upper": baseline_low_upper,
             "baseline_balanced_low": baseline_balanced_low,
             "baseline_blanced_upper": baseline_blanced_upper
+        }
+
+    @mcp.tool()
+    def get_weight(date_str, ctx: Context) -> dict:
+        """
+        Fetches weight data for a specific date (YYYY-MM-DD).
+        Only available if user added weight data on that specific date.
+        """
+        logger.info(f"Fetching weight data for {date_str}")
+
+        client = get_api()
+        weight_data = client.get_daily_weigh_ins(date_str)
+        weight = weight_data.get("totalAverage").get("weight")
+        bmi = weight_data.get("totalAverage").get("bmi")
+
+        return {
+            "weight_g": weight,
         }

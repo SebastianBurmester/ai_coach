@@ -7,6 +7,8 @@ import logging
 from dotenv import load_dotenv
 
 from tools.garmin_health_tools import register_garmin_health_tools
+from tools.garmin_activity_tools import register_garmin_activity_tools
+from tools.garmin_performance_tools import register_garmin_performance_tools
 
 load_dotenv()
 
@@ -26,6 +28,8 @@ logger.info("Server script started initialized.")
 # Initialize the MCP Server
 mcp = FastMCP("Fitness Coach MCP Server")
 register_garmin_health_tools(mcp)
+register_garmin_activity_tools(mcp)
+register_garmin_performance_tools(mcp)
 
 if __name__ == "__main__":
     mcp.run()

@@ -100,7 +100,7 @@ def get_stress_level(client, date_str):
     """
     Fetches the average stress level for a specific date (YYYY-MM-DD).
     """
-    stress_data = client.get_all_day_stress(date_str)
+    stress_data = client.get_stress_data(date_str)
     stress_level = stress_data.get("avgStressLevel")
     print(f"Stress Level for {date_str}: {stress_level}")
     return stress_level
@@ -136,6 +136,106 @@ def get_hrv_data(client, date_str):
         "baseline_balanced_low": baseline_balanced_low,
         "baseline_blanced_upper": baseline_blanced_upper
     }
+
+def get_vo2_max(client, date_str):
+    """
+    Fetches maximum metrics for a specific date (YYYY-MM-DD).
+    """
+    max_metrics = client.get_training_status(date_str)
+    cycling_vo2max = max_metrics.get("mostRecentVO2Max").get("cycling").get("vo2MaxPreciseValue")
+    running_vo2max = max_metrics.get("mostRecentVO2Max").get("generic").get("vo2MaxPreciseValue")
+
+    print(f"Max Metrics for {date_str}:")
+    print(f"  Cycling VO2Max: {cycling_vo2max}")
+    print(f"  Running VO2Max: {running_vo2max}")
+    return 
+
+def get_altitude_acclimation(client, date_str):
+    """
+    Fetches altitude acclimation data for a specific date (YYYY-MM-DD).
+    """
+    acclimation_data = client.get_training_status(date_str)
+    altitude_acclimation = acclimation_data.get("mostRecentVO2Max").get("heatAltitudeAcclimation").get("altitudeAcclimation")
+    current_altitude_meters = acclimation_data.get("mostRecentVO2Max").get("heatAltitudeAcclimation").get("currentAltitude")
+    heat_acclimation_percentage = acclimation_data.get("mostRecentVO2Max").get("heatAltitudeAcclimation").get("heatAcclimationPercentage")
+
+    print(f"Altitude Acclimation for {date_str}:")
+    print(f"  Acclimation Level: {altitude_acclimation}")
+    print(f"  Current Altitude (m): {current_altitude_meters}")
+    print(f"  Heat Acclimation Percentage: {heat_acclimation_percentage}%")
+
+    return {
+
+    }
+def get_weight(client, date_str):
+    """
+    Fetches weight data for a specific date (YYYY-MM-DD).
+    """
+    weight_data = client.get_daily_weigh_ins(date_str)
+    weight = weight_data.get("totalAverage").get("weight")
+    bmi = weight_data.get("totalAverage").get("bmi")
+
+    print(f"Weight Data for {date_str}:")
+    print(f"  Weight (g): {weight}")
+
+    return {
+        "weight_g": weight,
+    }
+
+def get_training_readiness(client, date_str):
+    """
+    Fetches training readiness data for a specific date (YYYY-MM-DD).
+    """
+    readiness_data = client.get_training_readiness(date_str)
+    overall_readiness = readiness_data[0].get("score")
+
+
+    print(f"Training Readiness for {date_str}:")
+    print(f"  Overall Readiness: {overall_readiness}")
+
+    return {
+        "overall_readiness": overall_readiness,
+    }
+
+
+def get_monthly_training_load(client, date_str):
+    """
+    Fetches training load data for a specific date (YYYY-MM-DD).
+    """
+    load_data = client.get_training_status(date_str)
+    monthly_low_aerobic_load = load_data.get("mostRecentTrainingLoadBalance").get("metricsTrainingLoadBalanceDTOMap").get("3438848558").get("monthlyLoadAerobicLow")
+    monthly_high_aerobic_load = load_data.get("mostRecentTrainingLoadBalance").get("metricsTrainingLoadBalanceDTOMap").get("3438848558").get("monthlyLoadAerobicHigh")
+    monthly_anearobic_load = load_data.get("mostRecentTrainingLoadBalance").get("metricsTrainingLoadBalanceDTOMap").get("3438848558").get("monthlyLoadAnaerobic")
+
+    print(f"Training Load for {date_str}:")
+    print(f"  Monthly Low Aerobic Load: {monthly_low_aerobic_load}")
+    print(f"  Monthly High Aerobic Load: {monthly_high_aerobic_load}")
+    print(f"  Monthly Anaerobic Load: {monthly_anearobic_load}")
+    return {
+    }
+
+def get_training_load(client, date_str):
+    """
+    Fetches training load data for a specific date (YYYY-MM-DD).
+    """
+    load_data = client.get_training_status(date_str)
+    daily_acute_load = load_data.get("mostRecentTrainingStatus").get("latestTrainingStatusData").get("3438848558").get("acuteTrainingLoadDTO").get("dailyTrainingLoadAcute")
+    print(f"  Daily Acute Load: {daily_acute_load}")
+    daily_chronic_load = load_data.get("mostRecentTrainingStatus").get("latestTrainingStatusData").get("3438848558").get("acuteTrainingLoadDTO").get("dailyTrainingLoadChronic")
+    print(f"  Daily Chronic Load: {daily_chronic_load}")
+    max_training_load_chronic = load_data.get("mostRecentTrainingStatus").get("latestTrainingStatusData").get("3438848558").get("acuteTrainingLoadDTO").get("maxTrainingLoadChronic")
+    print(f"  Max Training Load Chronic: {max_training_load_chronic}")
+    min_training_load_chronic = load_data.get("mostRecentTrainingStatus").get("latestTrainingStatusData").get("3438848558").get("acuteTrainingLoadDTO").get("minTrainingLoadChronic")
+    print(f"  Min Training Load Chronic: {min_training_load_chronic}")
+    acute_chronic_ratio = load_data.get("mostRecentTrainingStatus").get("latestTrainingStatusData").get("3438848558").get("acuteTrainingLoadDTO").get("dailyAcuteChronicWorkloadRatio")
+    print(f"  Acute Chronic Ratio: {acute_chronic_ratio}")
+    daily_status_feedback = load_data.get("mostRecentTrainingStatus").get("latestTrainingStatusData").get("3438848558").get("trainingStatusFeedbackPhrase")
+    print(f"  Daily Status Feedback: {daily_status_feedback}")
+    
+
+    
+    return {
+    }
 # --- Main Execution ---
 try:
     token_dir = os.path.expanduser("~/.garminconnect")
@@ -154,7 +254,9 @@ try:
     # Common types: 'running', 'cycling', 'swimming', 'strength_training', 'hiking', 'walking', 'virtual_ride'
     target_sport = "virtual_ride"
     
-    get_stress_level(client, "2025-12-20")
+    get_training_load(client, "2025-12-22")
+
+
 
 except Exception as e:
     print(f"Error: {e}")
