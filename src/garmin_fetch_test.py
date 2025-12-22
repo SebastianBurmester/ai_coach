@@ -279,20 +279,21 @@ def get_power_in_time_zones(client, activity_id):
     """
 
     time_in_power_zones = client.get_activity_power_in_timezones(activity_id)
-    time_zone_1 = time_in_power_zones[0].get("secsInZone")
-    zone_1_lower_bound = time_in_power_zones[0].get("zoneLowBoundary")
-    time_zone_2 = time_in_power_zones[1].get("secsInZone")
-    zone_2_lower_bound = time_in_power_zones[1].get("zoneLowBoundary")
-    time_zone_3 = time_in_power_zones[2].get("secsInZone")
-    zone_3_lower_bound = time_in_power_zones[2].get("zoneLowBoundary")
-    time_zone_4 = time_in_power_zones[3].get("secsInZone")
-    zone_4_lower_bound = time_in_power_zones[3].get("zoneLowBoundary")
-    time_zone_5 = time_in_power_zones[4].get("secsInZone")
-    zone_5_lower_bound = time_in_power_zones[4].get("zoneLowBoundary")  
-    time_zone_6 = time_in_power_zones[5].get("secsInZone")
-    zone_6_lower_bound = time_in_power_zones[5].get("zoneLowBoundary")
-    time_zone_7 = time_in_power_zones[6].get("secsInZone")
-    zone_7_lower_bound = time_in_power_zones[6].get("zoneLowBoundary")
+    # time_zone_1 = time_in_power_zones[0].get("secsInZone")
+    # zone_1_lower_bound = time_in_power_zones[0].get("zoneLowBoundary")
+    # time_zone_2 = time_in_power_zones[1].get("secsInZone")
+    # zone_2_lower_bound = time_in_power_zones[1].get("zoneLowBoundary")
+    # time_zone_3 = time_in_power_zones[2].get("secsInZone")
+    # zone_3_lower_bound = time_in_power_zones[2].get("zoneLowBoundary")
+    # time_zone_4 = time_in_power_zones[3].get("secsInZone")
+    # zone_4_lower_bound = time_in_power_zones[3].get("zoneLowBoundary")
+    # time_zone_5 = time_in_power_zones[4].get("secsInZone")
+    # zone_5_lower_bound = time_in_power_zones[4].get("zoneLowBoundary")  
+    # time_zone_6 = time_in_power_zones[5].get("secsInZone")
+    # zone_6_lower_bound = time_in_power_zones[5].get("zoneLowBoundary")
+    # time_zone_7 = time_in_power_zones[6].get("secsInZone")
+    # zone_7_lower_bound = time_in_power_zones[6].get("zoneLowBoundary")
+
 
     print(time_in_power_zones)
 
@@ -328,7 +329,8 @@ try:
     target_sport = "virtual_ride"
     
 
-    get_activity_dict_between_dates(client, "2024-05-15", "2024-06-22")  # Replace with a valid activity ID
+    get_activity_dict_between_dates(client, "2025-05-15", "2025-06-22")  # Replace with a valid activity ID
+    get_power_in_time_zones(client, 19488651881)  # Replace with a valid activity ID
 
 except Exception as e:
     print(f"Error: {e}")
