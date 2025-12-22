@@ -1,7 +1,9 @@
 import os
 from dotenv import load_dotenv
-from garminconnect import Garmin
 # Load environment variables
+
+from garminconnect import Garmin
+
 load_dotenv()
 
 

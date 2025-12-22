@@ -2,6 +2,8 @@ import datetime
 import os
 from fastmcp import FastMCP, Context
 
+print("Starting MCP Server...")
+
 import json
 import logging
 from dotenv import load_dotenv
@@ -29,11 +31,13 @@ logger.info("Server script started initialized.")
 
 # Initialize the MCP Server
 mcp = FastMCP("Fitness Coach MCP Server")
+print("Registering tools...")
 register_garmin_health_tools(mcp)
 register_garmin_activity_tools(mcp)
 register_garmin_performance_tools(mcp)
 register_generic_tools(mcp)
 register_goal_tools(mcp)
+print("Tools registered.")
 
 if __name__ == "__main__":
     mcp.run()
