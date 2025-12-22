@@ -26,9 +26,6 @@ def register_garmin_activity_tools(mcp):
     Registers all Garmin-Activity-related tools to the provided MCP server instance.
     """
 
-
-
-
     @mcp.tool()
     def get_activity_id_and_type_between_dates(client, start_date_str, end_date_str):
         """
@@ -79,6 +76,37 @@ def register_garmin_activity_tools(mcp):
             f"Zone 5 (>{zone_5_lower_bound} bpm)": time_zone_5
         }
     
+    def get_power_in_time_zones(client, activity_id):
+        """
+        Fetches power data in time zones for a specific activity by ID.
+        """
+
+        time_in_power_zones = client.get_activity_power_in_timezones(activity_id)
+        time_zone_1 = time_in_power_zones[0].get("secsInZone")
+        zone_1_lower_bound = time_in_power_zones[0].get("zoneLowBoundary")
+        time_zone_2 = time_in_power_zones[1].get("secsInZone")
+        zone_2_lower_bound = time_in_power_zones[1].get("zoneLowBoundary")
+        time_zone_3 = time_in_power_zones[2].get("secsInZone")
+        zone_3_lower_bound = time_in_power_zones[2].get("zoneLowBoundary")
+        time_zone_4 = time_in_power_zones[3].get("secsInZone")
+        zone_4_lower_bound = time_in_power_zones[3].get("zoneLowBoundary")
+        time_zone_5 = time_in_power_zones[4].get("secsInZone")
+        zone_5_lower_bound = time_in_power_zones[4].get("zoneLowBoundary")  
+        time_zone_6 = time_in_power_zones[5].get("secsInZone")
+        zone_6_lower_bound = time_in_power_zones[5].get("zoneLowBoundary")
+        time_zone_7 = time_in_power_zones[6].get("secsInZone")
+        zone_7_lower_bound = time_in_power_zones[6].get("zoneLowBoundary")
+
+        return {
+            f"Zone 1 ({zone_1_lower_bound}-{zone_2_lower_bound} watts)": time_zone_1,
+            f"Zone 2 ({zone_2_lower_bound}-{zone_3_lower_bound} watts)": time_zone_2,
+            f"Zone 3 ({zone_3_lower_bound}-{zone_4_lower_bound} watts)": time_zone_3,
+            f"Zone 4 ({zone_4_lower_bound}-{zone_5_lower_bound} watts)": time_zone_4,
+            f"Zone 5 ({zone_5_lower_bound}-{zone_6_lower_bound} watts)": time_zone_5,
+            f"Zone 6 ({zone_6_lower_bound}-{zone_7_lower_bound} watts)": time_zone_6,
+            f"Zone 7 (>{zone_7_lower_bound} watts)": time_zone_7
+        }
+
     @mcp.tool()
     def get_activity_weather(activity_id, ctx: Context) -> dict:
         """

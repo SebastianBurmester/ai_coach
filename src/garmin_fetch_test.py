@@ -281,14 +281,31 @@ def get_power_in_time_zones(client, activity_id):
     """
     Fetches power data in time zones for a specific activity by ID.
     """
-   # 1. Get the full detail object
-    details = client.get_activity_power_in_timezones(activity_id)
 
-    # 2. Extract Power Zone data
-    # Zwift/Garmin usually stores this as an array of seconds starting from Zone 1
+    time_in_power_zones = client.get_activity_power_in_timezones(activity_id)
+    time_zone_1 = time_in_power_zones[0].get("secsInZone")
+    zone_1_lower_bound = time_in_power_zones[0].get("zoneLowBoundary")
+    time_zone_2 = time_in_power_zones[1].get("secsInZone")
+    zone_2_lower_bound = time_in_power_zones[1].get("zoneLowBoundary")
+    time_zone_3 = time_in_power_zones[2].get("secsInZone")
+    zone_3_lower_bound = time_in_power_zones[2].get("zoneLowBoundary")
+    time_zone_4 = time_in_power_zones[3].get("secsInZone")
+    zone_4_lower_bound = time_in_power_zones[3].get("zoneLowBoundary")
+    time_zone_5 = time_in_power_zones[4].get("secsInZone")
+    zone_5_lower_bound = time_in_power_zones[4].get("zoneLowBoundary")  
+    time_zone_6 = time_in_power_zones[5].get("secsInZone")
+    zone_6_lower_bound = time_in_power_zones[5].get("zoneLowBoundary")
+    time_zone_7 = time_in_power_zones[6].get("secsInZone")
+    zone_7_lower_bound = time_in_power_zones[6].get("zoneLowBoundary")
 
-    print(f"Power Time in Zones for Activity ID {activity_id}:")
-    print(details)
+    print(f"  Zone 1 (<{zone_2_lower_bound} watts): {time_zone_1} sec")
+    print(f"  Zone 2 ({zone_2_lower_bound}-{zone_3_lower_bound} watts): {time_zone_2} sec")
+    print(f"  Zone 3 ({zone_3_lower_bound}-{zone_4_lower_bound} watts): {time_zone_3} sec")
+    print(f"  Zone 4 ({zone_4_lower_bound}-{zone_5_lower_bound} watts): {time_zone_4} sec")
+    print(f"  Zone 5 ({zone_5_lower_bound}-{zone_6_lower_bound} watts): {time_zone_5} sec")
+    print(f"  Zone 6 ({zone_6_lower_bound}-{zone_7_lower_bound} watts): {time_zone_6} sec")
+    print(f"  Zone 7 (>{zone_7_lower_bound} watts): {time_zone_7} sec")
+
 
 def get_activity_weather(client, activity_id):
     """
@@ -321,9 +338,9 @@ try:
     target_sport = "virtual_ride"
     
 
-    get_activity_dict_between_dates(client, "2025-12-19", "2025-12-25")  # Replace with a valid activity ID
-    get_hr_in_time_zones(client, 20987253868)  # Replace with a valid activity ID 20987253868: Cycling
-    get_power_in_time_zones(client, 20987253868)  # Replace with a valid activity ID
+    get_activity_dict_between_dates(client, "2025-10-19", "2025-12-25")  # Replace with a valid activity ID
+    get_hr_in_time_zones(client, 20860381315)  # Replace with a valid activity ID 20987253868: Cycling
+    get_power_in_time_zones(client, 20860381315)  # Replace with a valid activity ID
 
 except Exception as e:
     print(f"Error: {e}")
