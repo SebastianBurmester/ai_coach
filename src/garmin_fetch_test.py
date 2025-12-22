@@ -4,6 +4,7 @@ from garminconnect import Garmin
 # Load environment variables
 load_dotenv()
 
+
 def get_recent_activities_by_type(client, activity_type, count=3):
     """
     Fetches the last 'count' activities of a specific type (e.g., 'running').
@@ -239,18 +240,11 @@ def get_training_load(client, date_str):
 def get_activity_dict_between_dates(client, start_date_str, end_date_str):
     """
     Fetches activity ID and type dictionary between two dates (YYYY-MM-DD).
-    Maximum 100 activities will be returned.
     """
-    activities = client.get_activities(0, 100)  # Fetch a large number to cover the range
-    filtered_activities = []
+    activities = client.get_activities_by_date(start_date_str,end_date_str)  # Fetch a large number to cover the range
     activity_dict = {}
 
     for activity in activities:
-        activity_date = activity['startTimeLocal'][:10]  # Extract date part
-        if start_date_str <= activity_date <= end_date_str:
-            filtered_activities.append(activity)
-
-    for activity in filtered_activities:
         a_id = activity['activityId']
         a_type = activity['activityType']['typeKey']
         activity_dict[a_id] = a_type
@@ -298,13 +292,7 @@ def get_power_in_time_zones(client, activity_id):
     time_zone_7 = time_in_power_zones[6].get("secsInZone")
     zone_7_lower_bound = time_in_power_zones[6].get("zoneLowBoundary")
 
-    print(f"  Zone 1 (<{zone_2_lower_bound} watts): {time_zone_1} sec")
-    print(f"  Zone 2 ({zone_2_lower_bound}-{zone_3_lower_bound} watts): {time_zone_2} sec")
-    print(f"  Zone 3 ({zone_3_lower_bound}-{zone_4_lower_bound} watts): {time_zone_3} sec")
-    print(f"  Zone 4 ({zone_4_lower_bound}-{zone_5_lower_bound} watts): {time_zone_4} sec")
-    print(f"  Zone 5 ({zone_5_lower_bound}-{zone_6_lower_bound} watts): {time_zone_5} sec")
-    print(f"  Zone 6 ({zone_6_lower_bound}-{zone_7_lower_bound} watts): {time_zone_6} sec")
-    print(f"  Zone 7 (>{zone_7_lower_bound} watts): {time_zone_7} sec")
+    print(time_in_power_zones)
 
 
 def get_activity_weather(client, activity_id):
@@ -338,9 +326,7 @@ try:
     target_sport = "virtual_ride"
     
 
-    get_activity_dict_between_dates(client, "2025-10-19", "2025-12-25")  # Replace with a valid activity ID
-    get_hr_in_time_zones(client, 20860381315)  # Replace with a valid activity ID 20987253868: Cycling
-    get_power_in_time_zones(client, 20860381315)  # Replace with a valid activity ID
+    get_activity_dict_between_dates(client, "2024-05-15", "2024-06-22")  # Replace with a valid activity ID
 
 except Exception as e:
     print(f"Error: {e}")

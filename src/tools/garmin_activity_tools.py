@@ -27,21 +27,18 @@ def register_garmin_activity_tools(mcp):
     """
 
     @mcp.tool()
-    def get_activity_id_and_type_between_dates(client, start_date_str, end_date_str):
+    def get_activity_id_and_type_between_dates(start_date_str, end_date_str):
         """
         Fetches activity ID and activity type between two dates (YYYY-MM-DD).
         Maximum 100 activities will be returned.
         """
-        activities = client.get_activities(0, 100)  # Fetch a large number to cover the range
-        filtered_activities = []
+        logger.info(f"Fetching activities between {start_date_str} and {end_date_str}")
+
+        client = get_api()
+        activities = client.get_activities_by_date(start_date_str,end_date_str) 
         activity_dict = {}
 
         for activity in activities:
-            activity_date = activity['startTimeLocal'][:10]  # Extract date part
-            if start_date_str <= activity_date <= end_date_str:
-                filtered_activities.append(activity)
-
-        for activity in filtered_activities:
             a_id = activity['activityId']
             a_type = activity['activityType']['typeKey']
             activity_dict[a_id] = a_type
@@ -49,7 +46,7 @@ def register_garmin_activity_tools(mcp):
         return activity_dict
 
     @mcp.tool()
-    def get_hr_in_time_zones(client, activity_id, ctx: Context) -> dict:
+    def get_hr_in_time_zones(activity_id, ctx: Context) -> dict:
         """
         Fetches heart rate time in zones for a specific activity by ID.
         """
@@ -76,11 +73,14 @@ def register_garmin_activity_tools(mcp):
             f"Zone 5 (>{zone_5_lower_bound} bpm)": time_zone_5
         }
     
-    def get_power_in_time_zones(client, activity_id):
+    @mcp.tool()
+    def get_power_in_time_zones(activity_id, ctx: Context) -> dict:
         """
         Fetches power data in time zones for a specific activity by ID.
         """
+        logger.info(f"Fetching power in time zones for Activity ID {activity_id}")
 
+        client = get_api()
         time_in_power_zones = client.get_activity_power_in_timezones(activity_id)
         time_zone_1 = time_in_power_zones[0].get("secsInZone")
         zone_1_lower_bound = time_in_power_zones[0].get("zoneLowBoundary")
