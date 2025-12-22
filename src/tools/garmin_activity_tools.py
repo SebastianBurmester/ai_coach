@@ -25,3 +25,73 @@ def register_garmin_activity_tools(mcp):
     """
     Registers all Garmin-Activity-related tools to the provided MCP server instance.
     """
+
+
+
+
+    @mcp.tool()
+    def get_activity_id_and_type_between_dates(client, start_date_str, end_date_str):
+        """
+        Fetches activity ID and activity type between two dates (YYYY-MM-DD).
+        Maximum 100 activities will be returned.
+        """
+        activities = client.get_activities(0, 100)  # Fetch a large number to cover the range
+        filtered_activities = []
+        activity_dict = {}
+
+        for activity in activities:
+            activity_date = activity['startTimeLocal'][:10]  # Extract date part
+            if start_date_str <= activity_date <= end_date_str:
+                filtered_activities.append(activity)
+
+        for activity in filtered_activities:
+            a_id = activity['activityId']
+            a_type = activity['activityType']['typeKey']
+            activity_dict[a_id] = a_type
+
+        return activity_dict
+
+    @mcp.tool()
+    def get_hr_in_time_zones(client, activity_id, ctx: Context) -> dict:
+        """
+        Fetches heart rate time in zones for a specific activity by ID.
+        """
+        logger.info(f"Fetching heart rate in time zones for Activity ID {activity_id}")
+
+        client = get_api()
+        hr_in_time_zones = client.get_activity_hr_in_timezones(activity_id)
+        time_zone_1 = hr_in_time_zones[0].get("secsInZone")
+        zone_1_lower_bound = hr_in_time_zones[0].get("zoneLowBoundary")
+        time_zone_2 = hr_in_time_zones[1].get("secsInZone")
+        zone_2_lower_bound = hr_in_time_zones[1].get("zoneLowBoundary")
+        time_zone_3 = hr_in_time_zones[2].get("secsInZone")
+        zone_3_lower_bound = hr_in_time_zones[2].get("zoneLowBoundary")
+        time_zone_4 = hr_in_time_zones[3].get("secsInZone")
+        zone_4_lower_bound = hr_in_time_zones[3].get("zoneLowBoundary")
+        time_zone_5 = hr_in_time_zones[4].get("secsInZone")
+        zone_5_lower_bound = hr_in_time_zones[4].get("zoneLowBoundary")
+
+        return {
+            f"Zone 1 ({zone_1_lower_bound}-{zone_2_lower_bound} bpm)": time_zone_1,
+            f"Zone 2 ({zone_2_lower_bound}-{zone_3_lower_bound} bpm)": time_zone_2,
+            f"Zone 3 ({zone_3_lower_bound}-{zone_4_lower_bound} bpm)": time_zone_3,
+            f"Zone 4 ({zone_4_lower_bound}-{zone_5_lower_bound} bpm)": time_zone_4,
+            f"Zone 5 (>{zone_5_lower_bound} bpm)": time_zone_5
+        }
+    
+    @mcp.tool()
+    def get_activity_weather(activity_id, ctx: Context) -> dict:
+        """
+        Fetches weather data for a specific activity by ID.
+        """
+        logger.info(f"Fetching weather data for Activity ID {activity_id}")
+
+        client = get_api()
+        weather_data = client.get_activity_weather(activity_id)
+        temp = weather_data.get("temp")
+        relative_humidity = weather_data.get("relativeHumidity")
+        
+        return {
+            "temperature": temp,
+            "relative_humidity": relative_humidity
+        }

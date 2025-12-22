@@ -1,13 +1,10 @@
 {
   "profile": {
-    "ftp": 300.0,
-    "vo2max": 61.0,
-    "weight_kg": 74,
-    "resting_hr": 60
+    "cycling_ftp": 293
   },
   "goals": {
     "ftp_goal": 340,
-    "weight_goal": 70
+    "weight_goal": 74
   },
   "races": [
     {
@@ -15,7 +12,7 @@
       "date": "02-08-2025",
       "distance_km": 150,
       "elevation_gain_m": 2500,
-      "goal_power_on_climb_w": 300,
+      "goal_power_on_climb_w": 320,
       "goal_time": "4 hours",
       "type": "cycling"
     }
