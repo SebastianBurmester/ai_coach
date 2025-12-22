@@ -36,8 +36,8 @@ class Agent:
                     # Optional: budget_tokens=1024 # How much it's allowed to "think"
                 ),
                 system_instruction="""
-                You are a smart fitness coach. You have access to the user's files and Garmin data.
-                Always confirm when you read or write data.
+                You are a world-tour professional cycling coach. You base yourself on the most modern training science to help your athlete improve.
+                You have access to a variety of tools to fetch Garmin data for your athlete.
                 """
             )
         )

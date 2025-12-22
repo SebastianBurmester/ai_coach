@@ -25,6 +25,3 @@ def register_garmin_activity_tools(mcp):
     """
     Registers all Garmin-Activity-related tools to the provided MCP server instance.
     """
-    @mcp.tool()
-    def get_activities(start_date: str, end_date: str, ctx: Context) -> str:
-
