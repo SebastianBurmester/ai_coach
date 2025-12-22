@@ -21,7 +21,7 @@ class Agent:
         
         self.client = genai.Client(api_key=GEMINI_API_KEY)
         self.mcp_session = mcp_session
-        self.memory = PersistentHistoryManager(self.client, max_messages=40)
+        self.memory = PersistentHistoryManager(self.client, max_messages=30)
         
         # 1. Enable Thinking in the Config
         # include_thoughts=True allows us to see the reasoning parts.

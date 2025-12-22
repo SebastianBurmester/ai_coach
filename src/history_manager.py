@@ -4,7 +4,7 @@ from google import genai
 from google.genai import types
 
 class PersistentHistoryManager:
-    def __init__(self, client, filename="memory/agent_memory.json", max_messages=20):
+    def __init__(self, client, filename="memory/agent_memory.json", max_messages=30):
         self.client = client
         self.filename = filename
         self.max_messages = max_messages
@@ -27,9 +27,9 @@ class PersistentHistoryManager:
         """Summarizes the oldest chunk of conversation."""
         print(" [System]: Summarizing old history to save space...")
         
-        # Slice the oldest 5 messages
-        chunk = self.history[:5]
-        self.history = self.history[5:]
+        # Slice the oldest 10 messages
+        chunk = self.history[:10]
+        self.history = self.history[10:]
         
         chunk_text = "\n".join([f"{m['role']}: {m['parts'][0]}" for m in chunk])
         
@@ -40,7 +40,8 @@ class PersistentHistoryManager:
         Old conversation lines to merge:
         {chunk_text}
         
-        Task: Merge the old lines into the summary. Keep it concise. Preserve user goals and metrics.
+        Task: Update the summary. Preserve events like illness, injuries or similar data NOT related to goals or performance metrics. Do NOT include specific details about goals or performance metrics since those can be looked up separately.
+        Keep it concise. No unnecessary elaboration. Can be empty if no relevant info.
         """
         response = self.client.models.generate_content(
             model="gemini-2.5-flash",
@@ -52,7 +53,6 @@ class PersistentHistoryManager:
     def get_loadable_history(self):
         """
         Converts our saved history into the format the new SDK expects.
-        FIX: Uses text=... keyword argument.
         """
         sdk_history = []
         

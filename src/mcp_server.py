@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from tools.garmin_health_tools import register_garmin_health_tools
 from tools.garmin_activity_tools import register_garmin_activity_tools
 from tools.garmin_performance_tools import register_garmin_performance_tools
+from tools.generic_tools import register_generic_tools
 
 load_dotenv()
 
@@ -30,6 +31,7 @@ mcp = FastMCP("Fitness Coach MCP Server")
 register_garmin_health_tools(mcp)
 register_garmin_activity_tools(mcp)
 register_garmin_performance_tools(mcp)
+register_generic_tools(mcp)
 
 if __name__ == "__main__":
     mcp.run()
