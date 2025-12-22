@@ -14,6 +14,8 @@ pip install -r requirements.txt
 ## TODO
 - HITL Training plan generation Agent
 - Automating Agent to check data and adjust plan daily or weekly
+- get FTP data
+- get workout data
 
 ## Sources
 Garmin API:
