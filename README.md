@@ -1,6 +1,7 @@
 # AI Fitness Coach
 
 ![Status: Under Construction](https://img.shields.io/badge/status-under--construction-orange?style=for-the-badge)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 > 
 AI fitness assistant built on the **Gemini API**. Utilizes the **Model Context Protocol (MCP)** to interact directly with your Garmin Connect data.
 
