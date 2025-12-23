@@ -45,6 +45,17 @@ def register_garmin_performance_tools(mcp):
         }
 
     @mcp.tool()
+    def get_cycling_ftp(ctx: Context) -> dict:
+        """
+        Fetches user's current cycling FTP.
+        """
+        logger.info("Fetching cycling FTP")
+
+        client = get_api()
+        ftp = client.get_cycling_ftp().get("functionalThresholdPower")
+        return {"cycling_ftp": ftp}
+    
+    @mcp.tool()
     def get_altitude_acclimation(date_str, ctx: Context) -> dict:
         """
         Fetches altitude acclimation and sleep altitude for a specific date (YYYY-MM-DD).

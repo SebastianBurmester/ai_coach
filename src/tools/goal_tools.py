@@ -32,24 +32,12 @@ def register_goal_tools(mcp):
         """Returns the user's current fitness goals and upcoming races."""
         data = load_metrics()
         return json.dumps(data, indent=2)
-
-    @mcp.tool()
-    def update_cycling_ftp(value: float) -> str:
-        """Updates 'cycling_ftp' metric"""
-        data = load_metrics()
-        if "profile" not in data: data["profile"] = {}
-        data["profile"]["cycling_ftp"] = value
-        save_metrics(data)
-        return f"Updated cycling_ftp to {value}."
     
     @mcp.tool()
-    def get_cycling_ftp() -> float:
-        """Returns the user's current cycling FTP."""
-        data = load_metrics()
-        cycling_ftp = data.get("profile", {}).get("cycling_ftp", None)
-        if cycling_ftp is None:
-            return "Cycling FTP not set."
-        return cycling_ftp
+    def update_user_goals(data: dict) -> str:
+        """Updates the user's fitness goals."""
+        save_metrics(data)
+        return "User goals updated successfully."
 
     @mcp.tool()
     def add_race_goal(name: str, priority: int, date: str, distance_km: float, goal_desc: str) -> str:
