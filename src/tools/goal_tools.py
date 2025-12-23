@@ -52,11 +52,11 @@ def register_goal_tools(mcp):
         return cycling_ftp
 
     @mcp.tool()
-    def add_race_goal(name: str, date: str, distance_km: float, goal_desc: str) -> str:
+    def add_race_goal(name: str, priority: int, date: str, distance_km: float, goal_desc: str) -> str:
         """Adds a new race (YYYY-MM-DD) to the user's calendar."""
         data = load_metrics()
         if "races" not in data: data["races"] = []
-        new_race = {"name": name, "date": date, "distance_km": distance_km, "goal": goal_desc}
+        new_race = {"name": name, "priority": priority, "date": date, "distance_km": distance_km, "goal": goal_desc}
         data["races"].append(new_race)
         save_metrics(data)
         return f"Added race: {name} on {date}."

@@ -297,6 +297,13 @@ def get_power_in_time_zones(client, activity_id):
 
     print(time_in_power_zones)
 
+def get_ftp(client):
+    """
+    Fetches user's FTP from profile data.
+    """
+    profile = client.get_cycling_ftp()
+    print(profile)
+    return profile
 
 def get_activity_weather(client, activity_id):
     """
@@ -329,8 +336,7 @@ try:
     target_sport = "virtual_ride"
     
 
-    get_activity_dict_between_dates(client, "2025-05-15", "2025-06-22")  # Replace with a valid activity ID
-    get_power_in_time_zones(client, 19488651881)  # Replace with a valid activity ID
+    get_ftp(client)  # Replace with a valid activity ID
 
 except Exception as e:
     print(f"Error: {e}")

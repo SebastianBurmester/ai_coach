@@ -113,18 +113,23 @@ def register_garmin_health_tools(mcp):
         }
 
     @mcp.tool()
-    def get_weight(date_str, ctx: Context) -> dict:
+    def get_user_profile(ctx: Context) -> dict:
         """
-        Fetches weight data for a specific date (YYYY-MM-DD).
-        Only available if user added weight data on that specific date.
+        Fetches gender, weight, height and date of birth of the user.
         """
-        logger.info(f"Fetching weight data for {date_str}")
+        logger.info(f"Fetching user profile data")
 
         client = get_api()
-        weight_data = client.get_daily_weigh_ins(date_str)
-        weight = weight_data.get("totalAverage").get("weight")
-        bmi = weight_data.get("totalAverage").get("bmi")
+        profile = client.get_user_profile()
+        
+        gender = profile.get("userData").get("gender")
+        height_cm = profile.get("userData").get("height")
+        weight_g = profile.get("userData").get("weight")
+        date_of_birth = profile.get("userData").get("birthDate")
 
         return {
-            "weight_g": weight,
+            "gender": gender,
+            "date_of_birth": date_of_birth,
+            "height_cm": height_cm,
+            "weight_g": weight_g,
         }

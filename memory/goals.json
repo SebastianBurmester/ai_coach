@@ -1,7 +1,4 @@
 {
-  "profile": {
-    "cycling_ftp": 293
-  },
   "goals": {
     "ftp_goal": 340,
     "weight_goal": 74
@@ -10,6 +7,7 @@
     {
       "name": "Arlberg Giro",
       "date": "02-08-2025",
+      "priority": 1,
       "distance_km": 150,
       "elevation_gain_m": 2500,
       "goal_power_on_climb_w": 320,
