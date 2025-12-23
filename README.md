@@ -10,7 +10,7 @@ AI fitness assistant built on the **Gemini API**. Utilizes the **Model Context P
 
 ## Setup
 * pip install -r requirements.txt
-* add .env file with
+* add .env file containing
   - GARMIN_EMAIL= "your_email"
   - GARMIN_PASSWORD= "your_password"
   - GEMINI_API_KEY= "your_api_key"
