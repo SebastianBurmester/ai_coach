@@ -13,14 +13,14 @@ import logging
 
 # Configure logging to save thoughts to a file
 logging.basicConfig(
-    filename='thoughts_health.log',
+    filename='thoughts_season_planner.log',
     level=logging.INFO,
     format='%(asctime)s - [%(levelname)s] - %(message)s',
     filemode='a' # 'a' to append, 'w' to overwrite each session
 )
 logger = logging.getLogger("ThoughtLogger")
 
-season_planner_name = "Tom"
+coach_name = "Tom"
 
 # --- 1. Load Configuration ---
 load_dotenv()
@@ -52,13 +52,12 @@ class Agent:
                 ),
                 system_instruction="""
                 ### ROLE
-                You are a World-Tour Cycling Coach and Exercise Physiologist specializing in periodization utilizing the most modern approaches. Your goal is to create a high-level Season Macrocycle for your athlete.
+                You are {coach_name}, a World-Tour Cycling Coach and Exercise Physiologist specializing in periodization utilizing the most modern approaches. Your goal is to create a high-level Season Macrocycle for your athlete.
 
-                ### INPUT DATA
-                The user will provide:
-                1. Athlete Profile: (Age, Sex, Weight, Current VO2 Max/FTP).
+                ### Query Parameters to consider:
+                1. Athlete Profile: (Age, Sex, Weight, VO2 Max, FTP).
                 2. The Goal: (Race Type, Distance, Date).
-                3. Current Training State: (Avg. weekly hours over last 6 weeks, current fatigue/TSB).
+                3. Current Training State: (Avg. weekly hours over last 6 weeks, current fatigue).
                 4. Constraints: (Max hours/week available).
 
                 ### GUIDING PRINCIPLES
@@ -67,34 +66,30 @@ class Agent:
                 - BUILD: Focus on sport-specific power/pace and threshold.
                 - PEAK: Focus on race-pace intervals and maximum specificity.
                 - TAPER: Volume reduction to shed fatigue while maintaining intensity.
-                2. PROGRESSION: Never increase weekly volume by more than 10-15%.
-                3. RECOVERY: Every 3rd or 4th week must be a "Rest/Deload" week (approx. 60-70% of previous week's volume).
-                4. SPECIFICITY: As the race date approaches, workouts must move from general fitness to race-specific demands.
+                2. Use the mcp tools to fetch any necessary data.
+                3. Ask clarifying questions if any of the parameters are missing or more detail is needed.
 
                 ### OUTPUT FORMAT
                 You must return a JSON object representing the Macrocycle. Do not include conversational text.
 
                 {
-                "season_summary": {
-                    "total_weeks": number,
-                    "primary_focus": string,
-                    "projected_fitness_peak": string
-                },
+                "macrocycle_id": "season_2024_2025",
                 "phases": [
                     {
-                    "phase_name": "Base/Build/Peak/Taper",
-                    "start_week": 1,
-                    "end_week": 4,
-                    "objective": "string",
-                    "weekly_metrics": [
-                        {
-                        "week_number": 1,
-                        "focus": "Aerobic Volume / Strength",
-                        "target_tss_or_load": number,
-                        "target_hours": number,
-                        "is_recovery_week": boolean
-                        }
-                    ]
+                    "phase_name": "Base 1",
+                    "duration_weeks": 4,
+                    "objective": "Aerobic foundation and fat metabolism",
+                    "priority_zones": [1, 2],
+                    "target_weekly_hours_range": [6, 8],
+                    "key_physiological_marker": "Lowering resting HR"
+                    },
+                    {
+                    "phase_name": "Build 1",
+                    "duration_weeks": 4,
+                    "objective": "Threshold power and muscular endurance",
+                    "priority_zones": [3, 4],
+                    "target_weekly_hours_range": [8, 10],
+                    "key_physiological_marker": "Functional Threshold Power (FTP)"
                     }
                 ]
                 }
@@ -105,7 +100,7 @@ class Agent:
     async def greet(self):
         """Triggers the initial message from the agent."""
         # Hidden prompt to kick off the persona
-        initial_prompt = "Initiate conversation: Introduce yourself and get into the analytic mindset."
+        initial_prompt = "Initiate conversation: Introduce yourself and start planning the season."
         
         # We don't necessarily want to save the 'initial_prompt' to history, 
         # but we definitely want to save Coach's response.
@@ -134,7 +129,7 @@ class Agent:
         # We use await for the stream object, then 'async for' through it.
         stream = await self.chat.send_message_stream(user_input)
         
-        print("\n[Coach Thinking...]")
+        print(f"\n[{coach_name} is thinking...]")
         async for chunk in stream:
             # Check for thought parts (Reasoning)
             for part in chunk.candidates[0].content.parts:
@@ -160,7 +155,7 @@ async def main():
         print("--- Fitness Coach (Flash 2.5 + MCP + History) ---")
 
         greeting = await agent.greet()
-        print(f"\nCoach: {greeting}\n")
+        print(f"\n{coach_name}: {greeting}\n")
 
         while True:
             try:
@@ -173,7 +168,7 @@ async def main():
 
                 # Run the turn
                 response_text = await agent.run_turn(u_in)
-                print(f"\nCoach: {response_text}\n")
+                print(f"\n{coach_name}: {response_text}\n")
                 
             except Exception as e:
                 print(f"An error occurred: {e}")
