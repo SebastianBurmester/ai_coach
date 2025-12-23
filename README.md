@@ -1,5 +1,7 @@
 # AI Fitness Coach
 
+> **Work in Progress:** Under active development.
+> 
 AI fitness assistant built on the **Gemini API**. Utilizes the **Model Context Protocol (MCP)** to interact directly with your Garmin Connect data.
 
 ## Key Features
@@ -14,10 +16,6 @@ AI fitness assistant built on the **Gemini API**. Utilizes the **Model Context P
   - GARMIN_EMAIL= "your_email"
   - GARMIN_PASSWORD= "your_password"
   - GEMINI_API_KEY= "your_api_key"
-
-## TODO
-- HITL Training plan generation Agent
-- Automating Agent to check data and adjust plan daily or weekly
 
 ## Sources
 Garmin API:
