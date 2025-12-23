@@ -6,7 +6,7 @@
 AI fitness assistant built on the **Gemini API**. Utilizes the **Model Context Protocol (MCP)** to interact directly with your Garmin Connect data.
 
 ## Key Features
-* **Active Reasoning:** Uses Gemini "Thinking Mode" to analyze your recovery and workout intensity before responding.
+* **Active Reasoning:** Uses Gemini to analyze your recovery and workout intensity before responding.
 * **Garmin Integrated:** MCP Tools to get Garmin Data
 * **Persistent Memory:** Remembers your long-term goals and past coaching conversations.
 * **Modular MCP Tools:** Easily extendable to fetch data from different platforms.
