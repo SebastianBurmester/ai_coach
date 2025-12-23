@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from fastmcp import Client
 from google import genai
 from google.genai import types
-from history_manager import PersistentHistoryManager
+from ..history_manager import PersistentHistoryManager
 
 import datetime
 
@@ -13,14 +13,12 @@ import logging
 
 # Configure logging to save thoughts to a file
 logging.basicConfig(
-    filename='thoughts_season_planner.log',
+    filename='thoughts_health.log',
     level=logging.INFO,
     format='%(asctime)s - [%(levelname)s] - %(message)s',
     filemode='a' # 'a' to append, 'w' to overwrite each session
 )
 logger = logging.getLogger("ThoughtLogger")
-
-coach_name = "Tom"
 
 # --- 1. Load Configuration ---
 load_dotenv()
@@ -36,7 +34,7 @@ class Agent:
         
         self.client = genai.Client(api_key=GEMINI_API_KEY)
         self.mcp_session = mcp_session
-        self.memory = PersistentHistoryManager(self.client, max_messages=30, filename=f"memory/season_planner.json")
+        self.memory = PersistentHistoryManager(self.client, max_messages=30, filename=f"memory/health_memory.json")
         
         # 1. Enable Thinking in the Config
         # include_thoughts=True allows us to see the reasoning parts.
@@ -51,48 +49,28 @@ class Agent:
                     # Optional: budget_tokens=1024 # How much it's allowed to "think"
                 ),
                 system_instruction="""
-                ### ROLE
-                You are {coach_name}, a World-Tour Cycling Coach and Exercise Physiologist specializing in periodization utilizing the most modern approaches. Your goal is to create a high-level Season Macrocycle for your athlete.
+                Role: World Tour Cycling Team Physician
+                Tone: Professional, analytical, decisive, and encouraging but firm.
 
-                ### Query Parameters to consider:
-                1. Athlete Profile: (Age, Sex, Weight, VO2 Max, FTP).
-                2. The Goal: (Race Type, Distance, Date).
-                3. Current Training State: (Avg. weekly hours over last 6 weeks, current fatigue).
-                4. Constraints: (Max hours/week available).
+                Core Identity:
+                You are the Chief Medical Officer for a premier UCI World Tour cycling team. You specialize in sports medicine, exercise physiology, and clinical nutrition. Your goal is to monitor rider health stats and manage recovery.
+                
+                Data Analysis Parameters:
+                When reviewing health stats, you must prioritize the following metrics:
 
-                ### GUIDING PRINCIPLES
-                1. PERIODIZATION: Divide the season into distinct phases: 
-                - BASE: Focus on aerobic capacity and technique.
-                - BUILD: Focus on sport-specific power/pace and threshold.
-                - PEAK: Focus on race-pace intervals and maximum specificity.
-                - TAPER: Volume reduction to shed fatigue while maintaining intensity.
-                2. Use the mcp tools to fetch any necessary data.
-                3. Ask clarifying questions if any of the parameters are missing or more detail is needed.
+                HRV (Heart Rate Variability): To assess autonomic nervous system recovery.
 
-                ### OUTPUT FORMAT
-                You must return a JSON object representing the Macrocycle. Do not include conversational text.
+                Resting Heart Rate (RHR): Monitoring for spikes that indicate overtraining or oncoming illness.
 
-                {
-                "macrocycle_id": "season_2024_2025",
-                "phases": [
-                    {
-                    "phase_name": "Base 1",
-                    "duration_weeks": 4,
-                    "objective": "Aerobic foundation and fat metabolism",
-                    "priority_zones": [1, 2],
-                    "target_weekly_hours_range": [6, 8],
-                    "key_physiological_marker": "Lowering resting HR"
-                    },
-                    {
-                    "phase_name": "Build 1",
-                    "duration_weeks": 4,
-                    "objective": "Threshold power and muscular endurance",
-                    "priority_zones": [3, 4],
-                    "target_weekly_hours_range": [8, 10],
-                    "key_physiological_marker": "Functional Threshold Power (FTP)"
-                    }
-                ]
-                }
+                Sleep Quality/Duration: Assessing restorative phases (REM and Deep Sleep).
+
+                Training Load: Comparing physical load to the rider's current recovery capacity.
+
+                Thought Process:
+                You are encouraged to ask clarifying questions if data shows unexpected trends.
+
+                Response Structure
+                Status Assessment: A brief summary of the rider's current physiological state and a health readiness score from 0 to 100.
                 """
             )
         )
@@ -100,7 +78,7 @@ class Agent:
     async def greet(self):
         """Triggers the initial message from the agent."""
         # Hidden prompt to kick off the persona
-        initial_prompt = "Initiate conversation: Introduce yourself and start planning the season."
+        initial_prompt = "Initiate conversation: Introduce yourself and get into the analytic mindset."
         
         # We don't necessarily want to save the 'initial_prompt' to history, 
         # but we definitely want to save Coach's response.
@@ -129,7 +107,7 @@ class Agent:
         # We use await for the stream object, then 'async for' through it.
         stream = await self.chat.send_message_stream(user_input)
         
-        print(f"\n[{coach_name} is thinking...]")
+        print("\n[Coach Thinking...]")
         async for chunk in stream:
             # Check for thought parts (Reasoning)
             for part in chunk.candidates[0].content.parts:
@@ -155,7 +133,7 @@ async def main():
         print("--- Fitness Coach (Flash 2.5 + MCP + History) ---")
 
         greeting = await agent.greet()
-        print(f"\n{coach_name}: {greeting}\n")
+        print(f"\nCoach: {greeting}\n")
 
         while True:
             try:
@@ -168,7 +146,7 @@ async def main():
 
                 # Run the turn
                 response_text = await agent.run_turn(u_in)
-                print(f"\n{coach_name}: {response_text}\n")
+                print(f"\nCoach: {response_text}\n")
                 
             except Exception as e:
                 print(f"An error occurred: {e}")

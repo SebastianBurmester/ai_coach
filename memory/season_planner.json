@@ -48,6 +48,12 @@
       "parts": [
         "This plan is designed to start on **2025-12-23**."
       ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        "Hello again! I'm {coach_name}, your World-Tour Cycling Coach and Exercise Physiologist. I specialize in crafting personalized season plans to help athletes like you achieve your peak performance.\n\nWe've already laid out the high-level macrocycle for your 2025 season, leading up to the Arlberg Giro on August 2nd. It's set to kick off on **December 23rd, 2025**.\n\nNow that we have the overall structure in place, how would you like to proceed? We can dive into the details of each phase, discuss specific training methodologies, or make any adjustments based on your current thoughts. What are your initial impressions or questions about the plan?"
+      ]
     }
   ]
 }
