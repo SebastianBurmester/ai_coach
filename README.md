@@ -9,7 +9,11 @@ AI fitness assistant built on the **Gemini API**. Utilizes the **Model Context P
 * **Modular MCP Tools:** Easily extendable to fetch data from different platforms.
 
 ## Setup
-pip install -r requirements.txt
+* pip install -r requirements.txt
+* add .env file with
+  - GARMIN_EMAIL= "your_email"
+  - GARMIN_PASSWORD= "your_password"
+  - GEMINI_API_KEY= "your_api_key"
 
 ## TODO
 - HITL Training plan generation Agent
