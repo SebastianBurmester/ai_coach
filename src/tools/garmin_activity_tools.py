@@ -4,6 +4,7 @@ import os
 
 from garminconnect import Garmin
 import calendar
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -250,3 +251,78 @@ def register_garmin_activity_tools(mcp):
                 data["average_power"] /= count
         
         return monthly_summary
+
+    @mcp.tool()
+    def get_weekly_training_summary_by_date(date_str, ctx: Context):
+        """
+        Fetches weekly training summary for the week containing the provided date.
+        The week is defined as Monday through Sunday.
+        Args:
+            date_str (str): Date in 'YYYY-MM-DD' format.
+        """
+        logger.info(f"Fetching weekly training summary for date: {date_str}")
+        client = get_api()
+
+        # 1. Parse the input date
+        input_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+
+        # 2. Find Monday and Sunday of that week
+        # weekday() returns 0 for Monday, 6 for Sunday
+        days_since_monday = input_date.weekday()
+        monday_date = input_date - datetime.timedelta(days=days_since_monday)
+        sunday_date = monday_date + datetime.timedelta(days=6)
+
+        start_date = monday_date.strftime("%Y-%m-%d")
+        end_date = sunday_date.strftime("%Y-%m-%d")
+
+        logger.info(f"Week Range: {start_date} to {end_date}")
+
+        # 3. Fetch activity list
+        activities = client.get_activities_by_date(start_date, end_date) 
+        
+        weekly_summary = {}
+
+        for activity in activities:
+            activity_id = activity['activityId']
+            activity_type = activity['activityType']['typeKey']
+            
+            # 4. Fetch detailed data per activity
+            full_data = client.get_activity(activity_id)
+            summary_dto = full_data.get("summaryDTO", {})
+
+            # Extract metrics
+            duration = summary_dto.get("duration", 0) or 0
+            distance = summary_dto.get("distance", 0) or 0
+            load = summary_dto.get("activityTrainingLoad", 0) or 0
+            calories = summary_dto.get("calories", 0) or 0
+            avg_heart_rate = summary_dto.get("averageHR", 0) or 0
+            avg_power = summary_dto.get("averagePower", 0) or 0
+
+            if activity_type not in weekly_summary:
+                weekly_summary[activity_type] = {
+                    "total_duration_sec": 0,
+                    "total_distance_m": 0,
+                    "total_training_load": 0,
+                    "calories": 0,
+                    "avg_hr_sum": 0,
+                    "avg_power_sum": 0,
+                    "count": 0
+                }
+
+            stats = weekly_summary[activity_type]
+            stats["total_duration_sec"] += duration
+            stats["total_distance_m"] += distance
+            stats["total_training_load"] += load
+            stats["calories"] += calories
+            stats["avg_hr_sum"] += avg_heart_rate
+            stats["avg_power_sum"] += avg_power
+            stats["count"] += 1
+
+        # 5. Finalize average calculations
+        for activity_type, data in weekly_summary.items():
+            count = data["count"]
+            if count > 0:
+                data["average_heart_rate"] = data.pop("avg_hr_sum") / count
+                data["average_power"] = data.pop("avg_power_sum") / count
+        
+        return weekly_summary
