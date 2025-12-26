@@ -46,6 +46,59 @@ def register_garmin_activity_tools(mcp):
         return activity_dict
 
     @mcp.tool()
+    def get_activity_summary(client, activity_id):
+        """
+        Fetches summary data for a specific activity by ID.
+        """
+        logger.info(f"Fetching summary for Activity ID {activity_id}")
+
+        client = get_api()
+        summary_data = client.get_activity(activity_id)
+        activity_name = summary_data.get("activityName")
+        start_time = summary_data.get("summaryDTO").get("startTimeLocal")
+        distance_meters = summary_data.get("summaryDTO").get("distance")
+        duration_seconds = summary_data.get("summaryDTO").get("duration")
+        moving_duration_seconds = summary_data.get("summaryDTO").get("movingDuration")
+        elevation_gain_meters = summary_data.get("summaryDTO").get("elevationGain")
+        elevation_loss_meters = summary_data.get("summaryDTO").get("elevationLoss")
+        max_elevation = summary_data.get("summaryDTO").get("maxElevation")
+        averageMovingSpeed_mps = summary_data.get("summaryDTO").get("averageMovingSpeed")
+        calories = summary_data.get("summaryDTO").get("calories")
+        average_heart_rate = summary_data.get("summaryDTO").get("averageHR")
+        max_heart_rate = summary_data.get("summaryDTO").get("maxHR")
+        average_cadence = summary_data.get("summaryDTO").get("averageBikeCadence")
+        average_power = summary_data.get("summaryDTO").get("averagePower")
+        max_power_twenty_min = summary_data.get("summaryDTO").get("maxPowerTwentyMinutes")
+        normalized_power = summary_data.get("summaryDTO").get("normalizedPower")
+        training_stress_score = summary_data.get("summaryDTO").get("trainingStressScore")
+        activity_training_load = summary_data.get("summaryDTO").get("activityTrainingLoad")
+        aerobic_training_effect = summary_data.get("summaryDTO").get("trainingEffect")
+        anaerobic_training_effect = summary_data.get("summaryDTO").get("anaerobicTrainingEffect")
+
+        return {
+            "activity_name": activity_name,
+            "start_time": start_time,
+            "distance_meters": distance_meters,
+            "duration_seconds": duration_seconds,
+            "moving_duration_seconds": moving_duration_seconds,
+            "elevation_gain_meters": elevation_gain_meters,
+            "elevation_loss_meters": elevation_loss_meters,
+            "max_elevation": max_elevation,
+            "average_moving_speed (m/s)": averageMovingSpeed_mps,
+            "calories": calories,
+            "average_heart_rate": average_heart_rate,
+            "max_heart_rate": max_heart_rate,
+            "average_cadence": average_cadence if average_cadence is not None else "Not Available for this activity",
+            "average_power": average_power,
+            "max_power_twenty_minutes": max_power_twenty_min if max_power_twenty_min is not None else "Not Available for this activity",
+            "normalized_power": normalized_power,
+            "training_stress_score": training_stress_score if training_stress_score is not None else "Not Available for this activity",
+            "activity_training_load": activity_training_load,
+            "aerobic_training_effect": aerobic_training_effect,
+            "anaerobic_training_effect": anaerobic_training_effect
+        }
+
+    @mcp.tool()
     def get_hr_in_time_zones(activity_id, ctx: Context) -> dict:
         """
         Fetches heart rate time in zones for a specific activity by ID.

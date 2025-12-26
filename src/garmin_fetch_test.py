@@ -316,6 +316,56 @@ def get_activity_weather(client, activity_id):
     print(temp)
     print(relative_humidity)
 
+def get_activity_summary(client, activity_id):
+    """
+    Fetches summary data for a specific activity by ID.
+    """
+    summary_data = client.get_activity(activity_id)
+    activity_name = summary_data.get("activityName")
+    start_time = summary_data.get("summaryDTO").get("startTimeLocal")
+    distance_meters = summary_data.get("summaryDTO").get("distance")
+    duration_seconds = summary_data.get("summaryDTO").get("duration")
+    moving_duration_seconds = summary_data.get("summaryDTO").get("movingDuration")
+    elevation_gain_meters = summary_data.get("summaryDTO").get("elevationGain")
+    elevation_loss_meters = summary_data.get("summaryDTO").get("elevationLoss")
+    max_elevation = summary_data.get("summaryDTO").get("maxElevation")
+    averageMovingSpeed_mps = summary_data.get("summaryDTO").get("averageMovingSpeed")
+    calories = summary_data.get("summaryDTO").get("calories")
+    average_heart_rate = summary_data.get("summaryDTO").get("averageHR")
+    max_heart_rate = summary_data.get("summaryDTO").get("maxHR")
+    average_cadence = summary_data.get("summaryDTO").get("averageBikeCadence")
+    average_power = summary_data.get("summaryDTO").get("averagePower")
+    max_power_twenty_min = summary_data.get("summaryDTO").get("maxPowerTwentyMinutes")
+    normalized_power = summary_data.get("summaryDTO").get("normalizedPower")
+    training_stress_score = summary_data.get("summaryDTO").get("trainingStressScore")
+    activity_training_load = summary_data.get("summaryDTO").get("activityTrainingLoad")
+    aerobic_training_effect = summary_data.get("summaryDTO").get("trainingEffect")
+    anaerobic_training_effect = summary_data.get("summaryDTO").get("anaerobicTrainingEffect")
+
+    print(f"Activity Summary for ID {activity_id}:")
+    print(f"  Activity Name: {activity_name}")
+    print(f"  Start Time: {start_time}")
+    print(f"  Distance (m): {distance_meters}")
+    print(f"  Duration (s): {duration_seconds}")
+    print(f"  Moving Duration (s): {moving_duration_seconds}")
+    print(f"  Elevation Gain (m): {elevation_gain_meters}")
+    print(f"  Elevation Loss (m): {elevation_loss_meters}")
+    print(f"  Max Elevation (m): {max_elevation}")
+    print(f"  Average Moving Speed (m/s): {averageMovingSpeed_mps}")
+    print(f"  Calories: {calories}")
+    print(f"  Average Heart Rate (bpm): {average_heart_rate}")
+    print(f"  Max Heart Rate (bpm): {max_heart_rate}")
+    print(f"  Average Cadence (rpm): {average_cadence}")
+    print(f"  Average Power (watts): {average_power}")
+    print(f"  Max Power (20 min) (watts): {max_power_twenty_min}")
+    print(f"  Normalized Power (watts): {normalized_power}")
+    print(f"  Training Stress Score: {training_stress_score}")
+    print(f"  Activity Training Load: {activity_training_load}")
+    print(f"  Aerobic Training Effect: {aerobic_training_effect}")
+    print(f"  Anaerobic Training Effect: {anaerobic_training_effect}")
+
+    return summary_data
+
 
 # --- Main Execution ---
 try:
@@ -335,8 +385,8 @@ try:
     # Common types: 'running', 'cycling', 'swimming', 'strength_training', 'hiking', 'walking', 'virtual_ride'
     target_sport = "virtual_ride"
     
-
-    get_ftp(client)  # Replace with a valid activity ID
+    get_activity_dict_between_dates(client, "2025-12-22", "2025-12-26")
+    get_activity_summary(client, 21329992817)  # Replace with a valid activity ID
 
 except Exception as e:
     print(f"Error: {e}")
