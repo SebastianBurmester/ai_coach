@@ -48,7 +48,7 @@ def register_garmin_activity_tools(mcp):
         return activity_dict
 
     @mcp.tool()
-    def get_activity_summary(client, activity_id):
+    def get_activity_summary(activity_id):
         """
         Fetches summary data for a specific activity by ID.
         """

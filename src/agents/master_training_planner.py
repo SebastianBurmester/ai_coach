@@ -25,34 +25,54 @@ class OverallPlanner:
         The main workflow: Gather Status Quo Analysis -> Season Plan -> Weekly Plan -> Finalization
         """
         print("\n--- Gathering Athlete History Summary ---")
-        history = {} # Placeholder for history gathering logic
+        history = {"ftp": 120,
+                   "vo2max": 60
+                   } # Placeholder for history gathering logic
 
-        with open("memory/master_season_plan.json", "r") as f:
-            season_json = json.loads(f.read())   # REMOVE THIS LINE AFTER TESTING
+        # with open("memory/master_season_plan.json", "r") as f:
+        #     season_json = json.loads(f.read())   # REMOVE THIS LINE AFTER TESTING
 
-        print(f"--- [Step 1] Macrocycle Planning with Coach {season_coach_name} ---")
-        #season_json = await self.run_season_phase()
+        # initialize validation dict
+        validation = {}
+        validation["is_valid"] = False 
+        validation["recommendation"] = ""
+        season_planning_attempts = 0
         
-        if not season_json:
-            print("Planning cancelled or failed.")
-            return
+        while not validation["is_valid"]:
+            season_planning_attempts += 1
+            
+            if validation["recommendation"] != "":
+                print(f"{season_coach_name} is revising the plan based on the feedback from {season_coach_2_name}...")
+                season_json = await self.run_season_phase(validation["recommendation"], season_json)
+            else:
+                print(f"--- [Step 1] Macrocycle Planning with Coach {season_coach_name} ---")
+                season_json = await self.run_season_phase()
+            
+            if not season_json:
+                print("Planning cancelled or failed.")
+                return
 
-        print(f"\n--- [Step 2] {season_coach_2_name} is verifying the plan ---")
-        validation = await self.season_checker.check_plan(season_json, history)
+            print(f"\n--- {season_coach_2_name} is verifying the plan ---")
+            validation = await self.season_checker.check_plan(season_json, history)
 
-        if not validation["is_valid"]:
-            print(f"❌ Safety Issue Detected: {validation['flags']}")
-            print(f"Advice: {validation['recommendation']}")
-            # Here you would loop back to Coach Tom with this feedback
-            return None
-
-        print("✅ Plan Verified. Safe to proceed.")
-        return season_json
+            if not validation["is_valid"]:
+                print(f"❌ Safety Issue Detected: {validation['flags']}")
+                print(f"Advice: {validation['recommendation']}")
+                if season_planning_attempts >= 3:
+                    print(f"[FAILURE]: Maximum attempts reached. {season_coach_name} and {season_coach_2_name} could not come to an agreement.")
+                    return season_json
+                continue
+            
+            print("\n--- Season Macrocycle Planning Completed Successfully! ---")
+            print(f"Total Planning Loops: {season_planning_attempts}")
+            print(f"Validation Score: {validation['safety_score']}/10")
+            print(f"Final critical Remarks: {validation['flags']}")
+            return season_json
     
     
-    async def run_season_phase(self):
+    async def run_season_phase(self, user_input=None, season_json=None):
         """Manages the interactive loop for season planning."""
-        response = await self.season_coach.plan_season()
+        response = await self.season_coach.plan_season(user_input, season_json)
         
         while True:
             # Check if we have a valid JSON plan

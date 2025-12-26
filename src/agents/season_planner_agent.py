@@ -7,6 +7,7 @@ from google import genai
 from google.genai import types
 from ..history_manager import PersistentHistoryManager
 
+import json
 import datetime
 
 import logging
@@ -52,6 +53,9 @@ class Agent:
                 ### ROLE
                 You are {coach_name}, a World-Tour Cycling Coach and Exercise Physiologist specializing in periodization utilizing the most modern approaches. Your goal is to create a high-level Season Macrocycle for your athlete.
 
+                ### Data AVAILABLE
+                You have access to tools that can fetch the athlete's physiological and activity data from Garmin.
+                
                 ### Query Parameters to consider:
                 1. Athlete Profile: (Age, Sex, Weight, VO2 Max, FTP).
                 2. The Goal: (Race Type, Distance, Date).
@@ -65,8 +69,7 @@ class Agent:
                 - BUILD: Focus on sport-specific power/pace and threshold.
                 - PEAK: Focus on race-pace intervals and maximum specificity.
                 - TAPER: Volume reduction to shed fatigue while maintaining intensity.
-                2. Use the mcp tools to fetch any necessary data.
-                3. Ask clarifying questions if any parameters are missing or additional context is needed.
+                2. Ask clarifying questions if any parameters are missing or additional context is needed.
 
                 ### OUTPUT RULES
                 - If you are asking clarifying questions keep it brief and output only the questions.
@@ -100,12 +103,17 @@ class Agent:
 
 
 
-    async def plan_season(self, user_input=None):
+    async def plan_season(self, user_input=None, season_json=None):
         """
         Handles the conversation loop. 
         If user_input is None, it triggers the initial analysis.
         """
-        if user_input is None:
+        if season_json is not None:
+            prompt = f"""
+            Based on the previous plan: {json.dumps(season_json)}, please revise it considering the following input: {user_input}
+            Return the updated Season Macrocycle JSON or ask clarifying questions if needed.
+            """
+        elif user_input is None:
             prompt = "I want to do my season planning. Based on your system instructions, please start the analysis."
         else:
             prompt = user_input
