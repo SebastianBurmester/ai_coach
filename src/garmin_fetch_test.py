@@ -4,6 +4,11 @@ from dotenv import load_dotenv
 
 from garminconnect import Garmin
 
+import datetime
+import calendar
+
+from matplotlib.dates import relativedelta
+
 load_dotenv()
 
 
@@ -342,30 +347,59 @@ def get_activity_summary(client, activity_id):
     aerobic_training_effect = summary_data.get("summaryDTO").get("trainingEffect")
     anaerobic_training_effect = summary_data.get("summaryDTO").get("anaerobicTrainingEffect")
 
-    print(f"Activity Summary for ID {activity_id}:")
-    print(f"  Activity Name: {activity_name}")
-    print(f"  Start Time: {start_time}")
-    print(f"  Distance (m): {distance_meters}")
-    print(f"  Duration (s): {duration_seconds}")
-    print(f"  Moving Duration (s): {moving_duration_seconds}")
-    print(f"  Elevation Gain (m): {elevation_gain_meters}")
-    print(f"  Elevation Loss (m): {elevation_loss_meters}")
-    print(f"  Max Elevation (m): {max_elevation}")
-    print(f"  Average Moving Speed (m/s): {averageMovingSpeed_mps}")
-    print(f"  Calories: {calories}")
-    print(f"  Average Heart Rate (bpm): {average_heart_rate}")
-    print(f"  Max Heart Rate (bpm): {max_heart_rate}")
-    print(f"  Average Cadence (rpm): {average_cadence}")
-    print(f"  Average Power (watts): {average_power}")
-    print(f"  Max Power (20 min) (watts): {max_power_twenty_min}")
-    print(f"  Normalized Power (watts): {normalized_power}")
-    print(f"  Training Stress Score: {training_stress_score}")
-    print(f"  Activity Training Load: {activity_training_load}")
-    print(f"  Aerobic Training Effect: {aerobic_training_effect}")
-    print(f"  Anaerobic Training Effect: {anaerobic_training_effect}")
-
     return summary_data
 
+def get_monthly_training_summary(client, year, month):
+    """
+    Fetches monthly training summary for a specific month and year.
+    Args:
+        year (int): e.g., 2024
+        month (int): e.g., 3 for March
+    """
+    # 1. Determine the last day of the given month/year
+    # calendar.monthrange returns (first_day_weekday, number_of_days)
+    _, last_day = calendar.monthrange(year, month)
+    
+    # 2. Format the date strings for the API
+    start_date = f"{year}-{month:02d}-01"
+    end_date = f"{year}-{month:02d}-{last_day}"
+    
+    print(f"Generating summary for: {calendar.month_name[month]} {year}")
+    print(f"Date Range: {start_date} to {end_date}")
+
+    # 3. Fetch activity list
+    activity_dict = get_activity_dict_between_dates(client, start_date, end_date)
+    
+    monthly_summary = {}
+
+    for activity_id, activity_type in activity_dict.items():
+        # Fetch detailed data
+        full_data = client.get_activity(activity_id)
+        summary_dto = full_data.get("summaryDTO", {})
+
+        # Extract metrics (with null safety)
+        duration = summary_dto.get("duration", 0) or 0
+        distance = summary_dto.get("distance", 0) or 0
+        load = summary_dto.get("activityTrainingLoad", 0) or 0
+
+        # Initialize or update the activity type category
+        if activity_type not in monthly_summary:
+            monthly_summary[activity_type] = {
+                "total_duration_sec": 0,
+                "total_distance_m": 0,
+                "total_training_load": 0,
+                "count": 0
+            }
+
+        monthly_summary[activity_type]["total_duration_sec"] += duration
+        monthly_summary[activity_type]["total_distance_m"] += distance
+        monthly_summary[activity_type]["total_training_load"] += load
+        monthly_summary[activity_type]["count"] += 1
+
+    print("Monthly Training Summary:")
+    print(monthly_summary)
+
+    return monthly_summary
 
 # --- Main Execution ---
 try:
@@ -386,7 +420,7 @@ try:
     target_sport = "virtual_ride"
     
     get_activity_dict_between_dates(client, "2025-12-22", "2025-12-26")
-    get_activity_summary(client, 21329992817)  # Replace with a valid activity ID
+    get_monthly_training_summary(client, 2025,12)  # Replace with a valid activity ID
 
 except Exception as e:
     print(f"Error: {e}")

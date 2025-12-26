@@ -3,6 +3,7 @@ from fastmcp import Context
 import os
 
 from garminconnect import Garmin
+import calendar
 
 logger = logging.getLogger(__name__)
 
@@ -176,3 +177,76 @@ def register_garmin_activity_tools(mcp):
             "temperature": temp,
             "relative_humidity": relative_humidity
         }
+
+    @mcp.tool()
+    def get_monthly_training_summary(year, month, ctx: Context):
+        """
+        Fetches monthly training summary for a specific month and year.
+        Args:
+            year (int): e.g., 2024
+            month (int): e.g., 3 for March
+        """
+        # 1. Determine the last day of the given month/year
+        # calendar.monthrange returns (first_day_weekday, number_of_days)
+        logger.info(f"Fetching monthly training summary for {year}-{month:02d}")
+        
+        client = get_api()
+
+        _, last_day = calendar.monthrange(year, month)
+        
+        # 2. Format the date strings for the API
+        start_date = f"{year}-{month:02d}-01"
+        end_date = f"{year}-{month:02d}-{last_day}"
+
+        # 3. Fetch activity list
+        activities = client.get_activities_by_date(start_date,end_date) 
+        activity_dict = {}
+
+        for activity in activities:
+            a_id = activity['activityId']
+            a_type = activity['activityType']['typeKey']
+            activity_dict[a_id] = a_type
+        
+        monthly_summary = {}
+
+        for activity_id, activity_type in activity_dict.items():
+            # Fetch detailed data
+            full_data = client.get_activity(activity_id)
+            summary_dto = full_data.get("summaryDTO", {})
+
+            # Extract metrics (with null safety)
+            duration = summary_dto.get("duration", 0) or 0
+            distance = summary_dto.get("distance", 0) or 0
+            load = summary_dto.get("activityTrainingLoad", 0) or 0
+            calories = summary_dto.get("calories", 0) or 0
+            avg_heart_rate = summary_dto.get("averageHR", 0) or 0
+            avg_power = summary_dto.get("averagePower", 0) or 0
+
+            # Initialize or update the activity type category
+            if activity_type not in monthly_summary:
+                monthly_summary[activity_type] = {
+                    "total_duration_sec": 0,
+                    "total_distance_m": 0,
+                    "total_training_load": 0,
+                    "calories": 0,
+                    "average_heart_rate": 0,
+                    "average_power": 0,
+                    "count": 0
+                }
+
+            monthly_summary[activity_type]["total_duration_sec"] += duration
+            monthly_summary[activity_type]["total_distance_m"] += distance
+            monthly_summary[activity_type]["total_training_load"] += load
+            monthly_summary[activity_type]["calories"] += calories
+            monthly_summary[activity_type]["average_heart_rate"] += avg_heart_rate
+            monthly_summary[activity_type]["average_power"] += avg_power
+            monthly_summary[activity_type]["count"] += 1
+
+        # Finalize average calculations
+        for activity_type, data in monthly_summary.items():
+            count = data["count"]
+            if count > 0:
+                data["average_heart_rate"] /= count
+                data["average_power"] /= count
+        
+        return monthly_summary
