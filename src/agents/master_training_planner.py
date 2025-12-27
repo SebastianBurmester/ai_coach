@@ -35,7 +35,7 @@ class OverallPlanner:
             health_response = await self.health_specialist.analyze_health(user_msg)
 
         health_report = json.loads(health_response)
-        print(f"\n✅ Health Clearance Report:\n{json.dumps(health_report, indent=4)}")
+        print(f"\n✅ Health Report:\n{json.dumps(health_report, indent=4)}")
 
         with open("memory/health_report.json", "w") as f:
             json.dump(health_report, f, indent=4)

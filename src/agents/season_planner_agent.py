@@ -28,9 +28,6 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 today = datetime.date.today().strftime("%Y-%m-%d")
 
-with open ("memory/goals.json", "r") as f:
-    athlete_goals = json.loads(f.read())
-
 class Agent:
     def __init__(self, mcp_session, coach_name="Season Coach"):
         if not GEMINI_API_KEY:
@@ -52,16 +49,16 @@ class Agent:
                     include_thoughts=False,
                     # Optional: budget_tokens=1024 # How much it's allowed to "think"
                 ),
-                system_instruction=f"""
+                system_instruction="""
                 ### ROLE
-                You are {coach_name}, a World-Tour Cycling Coach and Exercise Physiologist specializing in periodization utilizing the most modern approaches. Your goal is to create a high-level Season Macrocycle for your athlete.
+                You are a World-Tour Cycling Coach and Exercise Physiologist specializing in periodization utilizing the most modern approaches. Your goal is to create a high-level Season Macrocycle for your athlete.
 
                 ### Data AVAILABLE
-                You have access to tools that can fetch the athlete's physiological and activity data from Garmin.
+                You have access to tools that can fetch the athlete's physiological and activity data from Garmin and the users goals and constraints.
                 
                 ### Query Parameters to consider:
                 1. Athlete Profile: (Age, Sex, Weight, VO2 Max, FTP).
-                2. The Goals: {json.dumps(athlete_goals)}
+                2. The Goals: Main race, FTP goal etc.
                 3. Current Training State: (Avg. weekly hours over last 6 weeks, current fatigue).
                 4. Constraints: (Max hours/week available).
                 5. History: (Previous months training data).
@@ -78,9 +75,9 @@ class Agent:
                 ### OUTPUT RULES
                 - If you are asking clarifying questions keep it brief and output only the questions.
                 - If you are providing the finalized plan: Return ONLY a JSON object. No conversational filler.
-                {
 
                 ### MACROCYCLE JSON STRUCTURE
+                {
                 "macrocycle_id": "season_2024_2025",
                 "phases": [
                     {
