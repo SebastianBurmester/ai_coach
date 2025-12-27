@@ -28,6 +28,9 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 today = datetime.date.today().strftime("%Y-%m-%d")
 
+with open ("memory/goals.json", "r") as f:
+    athlete_goals = json.loads(f.read())
+
 class Agent:
     def __init__(self, mcp_session, coach_name="Season Coach"):
         if not GEMINI_API_KEY:
@@ -49,7 +52,7 @@ class Agent:
                     include_thoughts=False,
                     # Optional: budget_tokens=1024 # How much it's allowed to "think"
                 ),
-                system_instruction="""
+                system_instruction=f"""
                 ### ROLE
                 You are {coach_name}, a World-Tour Cycling Coach and Exercise Physiologist specializing in periodization utilizing the most modern approaches. Your goal is to create a high-level Season Macrocycle for your athlete.
 
@@ -58,10 +61,11 @@ class Agent:
                 
                 ### Query Parameters to consider:
                 1. Athlete Profile: (Age, Sex, Weight, VO2 Max, FTP).
-                2. The Goal: (Race Type, Distance, Date).
+                2. The Goals: {json.dumps(athlete_goals)}
                 3. Current Training State: (Avg. weekly hours over last 6 weeks, current fatigue).
                 4. Constraints: (Max hours/week available).
                 5. History: (Previous months training data).
+                6. Athletes Health Report: (Recent health status and any restrictions).
 
                 ### GUIDING PRINCIPLES
                 1. PERIODIZATION: Divide the season into distinct phases: 
@@ -103,7 +107,7 @@ class Agent:
 
 
 
-    async def plan_season(self, user_input=None, season_json=None):
+    async def plan_season(self, user_input=None, season_json=None, health_report=None):
         """
         Handles the conversation loop. 
         If user_input is None, it triggers the initial analysis.
@@ -114,7 +118,7 @@ class Agent:
             Return the updated Season Macrocycle JSON or ask clarifying questions if needed.
             """
         elif user_input is None:
-            prompt = "I want to do my season planning. Based on your system instructions, please start the analysis."
+            prompt = f"I want to do my season planning. Here is the health report: {json.dumps(health_report)} Based on your system instructions, please start the analysis."
         else:
             prompt = user_input
 

@@ -20,7 +20,7 @@ class SeasonContentCheckerAgent:
             global athlete_goals
             athlete_goals = json.loads(f.read())
 
-    async def check_plan(self, season_plan_json, athlete_history_summary):
+    async def check_plan(self, season_plan_json, athlete_history_summary, athlete_health_report):
         """
         Compares the proposed plan against actual history to detect hallucinations.
         """
@@ -32,6 +32,7 @@ class SeasonContentCheckerAgent:
         1. PROPOSED PLAN: {json.dumps(season_plan_json)}
         2. ATHLETE HISTORY (Ground Truth): {json.dumps(athlete_history_summary)}
         3. ATHLETE GOALS: {json.dumps(athlete_goals)}
+        4. ATHLETE HEALTH REPORT: {json.dumps(athlete_health_report)}
 
         ### VALIDATION CRITERIA
         - LOAD SPIKE: Does any phase increase weekly hours too rapidly?

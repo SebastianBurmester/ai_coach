@@ -23,7 +23,7 @@ class OverallPlanner:
 
     async def orchestrate_planning(self):
         """
-        The main workflow: Gather Status Quo Analysis -> Season Plan -> Weekly Plan -> Finalization
+        The main workflow: Gather Status Quo Analysis -> Season Plan
         """
         print(f"\n--- [Appointment 1] Health checkup with {health_specialist_name} ---")
         print(f"Please wait while {health_specialist_name} is analyzing your health data...")
@@ -36,6 +36,10 @@ class OverallPlanner:
 
         health_report = json.loads(health_response)
         print(f"\n✅ Health Clearance Report:\n{json.dumps(health_report, indent=4)}")
+
+        with open("memory/health_report.json", "w") as f:
+            json.dump(health_report, f, indent=4)
+        print("Health report saved to memory/health_report.json\n")
 
         history = {"ftp": 290,
                    "vo2max": 60
@@ -53,10 +57,10 @@ class OverallPlanner:
             
             if season_validation["recommendation"] != "":
                 print(f"{season_coach_name} is revising the plan based on the feedback...")
-                season_json = await self.run_season_phase(season_validation["recommendation"], season_json)
+                season_json = await self.run_season_phase(season_validation["recommendation"], season_json, health_report)
             else:
                 print(f"--- [Appointment 2] Macrocycle Planning with Coach {season_coach_name} ---")
-                season_json = await self.run_season_phase()
+                season_json = await self.run_season_phase(health_report=health_report)
 
             if not season_json:
                 print("Planning cancelled or failed.")
@@ -69,7 +73,7 @@ class OverallPlanner:
             
 
             print(f"\n--- {season_coach_2_name} is verifying the plan ---")
-            season_validation = await self.season_checker.check_plan(season_json, history)
+            season_validation = await self.season_checker.check_plan(season_json, history, health_report)
 
             if not season_validation["is_valid"]:
                 print(f"❌ Safety Issue Detected: {season_validation['flags']}")
@@ -98,9 +102,9 @@ class OverallPlanner:
                     continue 
 
     
-    async def run_season_phase(self, user_input=None, season_json=None):
+    async def run_season_phase(self, user_input=None, season_json=None, health_report=None):
         """Manages the interactive loop for season planning."""
-        response = await self.season_coach.plan_season(user_input, season_json)
+        response = await self.season_coach.plan_season(user_input, season_json, health_report)
         
         while True:
             # Check if we have a valid JSON plan
