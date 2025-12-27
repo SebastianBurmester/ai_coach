@@ -6,31 +6,40 @@ from dotenv import load_dotenv
 
 from src.agents.season_planner_agent import Agent as SeasonAgent
 from src.agents.season_planner_verification_agent import SeasonContentCheckerAgent
+from src.agents.health_specialist import HealthSpecialistAgent
 
 season_coach_name = "Tom"
 season_coach_2_name = "Lars"
+health_specialist_name = "Lisa"
 
 class OverallPlanner:
     def __init__(self, mcp_session):
         self.mcp_session = mcp_session
         # Initialize specialized agents
-        # self.health_specialist = HealthSpecialistAgent(mcp_session)
+        self.health_specialist = HealthSpecialistAgent(mcp_session)
         # self.longterm_performance_analyst = LongTermPerformanceAgent(mcp_session)
         self.season_coach = SeasonAgent(mcp_session, coach_name=season_coach_name)
         self.season_checker = SeasonContentCheckerAgent()
-        # self.weekly_coach = WeeklyAgent(mcp_session)
 
     async def orchestrate_planning(self):
         """
         The main workflow: Gather Status Quo Analysis -> Season Plan -> Weekly Plan -> Finalization
         """
-        print("\n--- Gathering Athlete History Summary ---")
+        print(f"\n--- [Appointment 1] Health checkup with {health_specialist_name} ---")
+        print(f"Please wait while {health_specialist_name} is analyzing your health data...")
+        health_response = await self.health_specialist.analyze_health()
+        
+        while not self._is_json(health_response):
+            print(f"\n[{health_specialist_name}]: {health_response}")
+            user_msg = input("You: ")
+            health_response = await self.health_specialist.analyze_health(user_msg)
+
+        health_report = json.loads(health_response)
+        print(f"\n✅ Health Clearance Report:\n{json.dumps(health_report, indent=4)}")
+
         history = {"ftp": 290,
                    "vo2max": 60
                    } # Placeholder for history gathering logic
-
-        # with open("memory/master_season_plan.json", "r") as f:
-        #     season_json = json.loads(f.read())   # REMOVE THIS LINE AFTER TESTING
 
         # initialize season_validation dict
         season_validation = {}
@@ -46,12 +55,18 @@ class OverallPlanner:
                 print(f"{season_coach_name} is revising the plan based on the feedback...")
                 season_json = await self.run_season_phase(season_validation["recommendation"], season_json)
             else:
-                print(f"--- [Step 1] Macrocycle Planning with Coach {season_coach_name} ---")
+                print(f"--- [Appointment 2] Macrocycle Planning with Coach {season_coach_name} ---")
                 season_json = await self.run_season_phase()
-            
+
             if not season_json:
                 print("Planning cancelled or failed.")
                 return
+            
+            # Save plan to file
+            with open("memory/master_season_plan.json", "w") as f:
+                json.dump(season_json, f, indent=4)
+            print(f"\n--- [Season plan updated] ---")
+            
 
             print(f"\n--- {season_coach_2_name} is verifying the plan ---")
             season_validation = await self.season_checker.check_plan(season_json, history)
@@ -80,8 +95,8 @@ class OverallPlanner:
                     season_planning_attempts = 0
                     season_validation["is_valid"] = False
                     season_validation["recommendation"] = user_recommendation
-                    continue        
-    
+                    continue 
+
     
     async def run_season_phase(self, user_input=None, season_json=None):
         """Manages the interactive loop for season planning."""
@@ -120,12 +135,6 @@ async def main():
     async with Client(SERVER_FILE) as mcp_client:
         planner = OverallPlanner(mcp_client.session)
         final_plan = await planner.orchestrate_planning()
-        
-        # Save the master plan to a file for other agents to use
-        if final_plan:
-            with open("memory/master_season_plan.json", "w") as f:
-                json.dump(final_plan, f, indent=4)
-            print("\nMaster Plan saved to memory/master_season_plan.json")
 
 if __name__ == "__main__":
     asyncio.run(main())
