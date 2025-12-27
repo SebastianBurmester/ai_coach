@@ -16,6 +16,9 @@ class SeasonContentCheckerAgent:
             sys.exit("Error: GEMINI_API_KEY missing.") 
         self.client = genai.Client(api_key=gemini_api_key)
         self.model_id = "gemini-2.5-flash"
+        with open ("memory/goals.json", "r") as f:
+            global athlete_goals
+            athlete_goals = json.loads(f.read())
 
     async def check_plan(self, season_plan_json, athlete_history_summary):
         """
@@ -28,6 +31,7 @@ class SeasonContentCheckerAgent:
         ### INPUT DATA
         1. PROPOSED PLAN: {json.dumps(season_plan_json)}
         2. ATHLETE HISTORY (Ground Truth): {json.dumps(athlete_history_summary)}
+        3. ATHLETE GOALS: {json.dumps(athlete_goals)}
 
         ### VALIDATION CRITERIA
         - LOAD SPIKE: Does any phase increase weekly hours too rapidly?

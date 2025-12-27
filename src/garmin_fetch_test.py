@@ -419,8 +419,8 @@ try:
     # Common types: 'running', 'cycling', 'swimming', 'strength_training', 'hiking', 'walking', 'virtual_ride'
     target_sport = "virtual_ride"
     
-    get_activity_dict_between_dates(client, "2025-12-22", "2025-12-26")
-    get_monthly_training_summary(client, 2025,12)  # Replace with a valid activity ID
+    #get_activity_dict_between_dates(client, "2025-12-22", "2025-12-26")
+    get_vo2_max(client, "2025-12-20")  # Replace with a valid activity ID
 
 except Exception as e:
     print(f"Error: {e}")

@@ -25,25 +25,26 @@ class OverallPlanner:
         The main workflow: Gather Status Quo Analysis -> Season Plan -> Weekly Plan -> Finalization
         """
         print("\n--- Gathering Athlete History Summary ---")
-        history = {"ftp": 120,
+        history = {"ftp": 290,
                    "vo2max": 60
                    } # Placeholder for history gathering logic
 
         # with open("memory/master_season_plan.json", "r") as f:
         #     season_json = json.loads(f.read())   # REMOVE THIS LINE AFTER TESTING
 
-        # initialize validation dict
-        validation = {}
-        validation["is_valid"] = False 
-        validation["recommendation"] = ""
+        # initialize season_validation dict
+        season_validation = {}
+        season_validation["is_valid"] = False 
+        season_validation["recommendation"] = ""
         season_planning_attempts = 0
         
-        while not validation["is_valid"]:
+        # Start the season planning loop
+        while not season_validation["is_valid"]:
             season_planning_attempts += 1
             
-            if validation["recommendation"] != "":
-                print(f"{season_coach_name} is revising the plan based on the feedback from {season_coach_2_name}...")
-                season_json = await self.run_season_phase(validation["recommendation"], season_json)
+            if season_validation["recommendation"] != "":
+                print(f"{season_coach_name} is revising the plan based on the feedback...")
+                season_json = await self.run_season_phase(season_validation["recommendation"], season_json)
             else:
                 print(f"--- [Step 1] Macrocycle Planning with Coach {season_coach_name} ---")
                 season_json = await self.run_season_phase()
@@ -53,21 +54,33 @@ class OverallPlanner:
                 return
 
             print(f"\n--- {season_coach_2_name} is verifying the plan ---")
-            validation = await self.season_checker.check_plan(season_json, history)
+            season_validation = await self.season_checker.check_plan(season_json, history)
 
-            if not validation["is_valid"]:
-                print(f"❌ Safety Issue Detected: {validation['flags']}")
-                print(f"Advice: {validation['recommendation']}")
+            if not season_validation["is_valid"]:
+                print(f"❌ Safety Issue Detected: {season_validation['flags']}")
+                print(f"Advice: {season_validation['recommendation']}")
                 if season_planning_attempts >= 3:
                     print(f"[FAILURE]: Maximum attempts reached. {season_coach_name} and {season_coach_2_name} could not come to an agreement.")
                     return season_json
                 continue
-            
-            print("\n--- Season Macrocycle Planning Completed Successfully! ---")
-            print(f"Total Planning Loops: {season_planning_attempts}")
-            print(f"Validation Score: {validation['safety_score']}/10")
-            print(f"Final critical Remarks: {validation['flags']}")
-            return season_json
+            else:
+                print("\n--- Season Macrocycle Planning Completed Successfully! ---")
+                print(f"Total Planning Loops: {season_planning_attempts}")
+                print(f"season_validation Score: {season_validation['safety_score']}/10")
+                print(f"Final critical Remarks: {season_validation['flags']}")
+                print("\n")
+                print("\nPlease revise the Season Plan and submit recommendations if a change is wished.")
+                print("Changes can also be done in the json file directly before acceptance.")
+                print("\nIf satisfied, type 'accept' to finalize the plan.")
+                user_recommendation = input("\n You: ")
+
+                if user_recommendation.lower() == "accept":
+                    return season_json
+                else:
+                    season_planning_attempts = 0
+                    season_validation["is_valid"] = False
+                    season_validation["recommendation"] = user_recommendation
+                    continue        
     
     
     async def run_season_phase(self, user_input=None, season_json=None):
